@@ -79,7 +79,7 @@ class Server
         }
 
         boost::asio::ip::tcp::acceptor _acceptor;
-        invoke::Invoker & _invoker;
+        invoke::Invoker _invoker;
 };
 
 int main(int argc, char * argv[])
