@@ -26,7 +26,7 @@ class Server
         void handleAccept(Connection::pointer newConnection, const boost::system::error_code & error)
         {
             if (!error) {
-                newConnection->start();
+                newConnection->beginReading();
                 startAccept();
             }
         }

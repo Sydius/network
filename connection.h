@@ -15,7 +15,7 @@ class Connection: public std::enable_shared_from_this<Connection>
             return _socket;
         }
 
-        void start()
+        void beginReading()
         {
             boost::asio::async_read_until(_socket, _incoming, '\n',
                 std::bind(&Connection::handleRead, shared_from_this(),
@@ -36,6 +36,7 @@ class Connection: public std::enable_shared_from_this<Connection>
             std::string line;
             std::getline(is, line);
             _invoker.invoke(line);
+            beginReading();
         }
 
         void handleWrite(const boost::system::error_code &, size_t)

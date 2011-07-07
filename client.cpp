@@ -26,9 +26,7 @@ int main(int argc, char * argv[])
     if (error)
         return 1;
 
-    while(true) {
-        boost::asio::write(socket, boost::asio::buffer(message));
-    }
+    boost::asio::write(socket, boost::asio::buffer(message));
 
     return 0;
 }
