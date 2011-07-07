@@ -37,7 +37,6 @@ class Server
 
 int main(int argc, char * argv[])
 {
-    std::cout << invoke::serialize("foo", foo, 5) << std::endl;
     try {
         invoke::Invoker invoker;
         invoker.registerFunction("foo", foo);

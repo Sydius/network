@@ -12,8 +12,10 @@ def configure(conf):
 
 def build(bld):
     bld.program(
-        source=['client.cpp'],
+        source=['client.cpp', 'shared.cpp'],
+        includes=['../call-with-tuple', '../serialize-tuple', '../dynamic-invocation'],
         target='client',
+        lib=['boost_system-mt', 'boost_serialization'],
         cxxflags='-O3 --std=c++0x --pedantic -Wall'
     )
     bld.program(
