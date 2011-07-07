@@ -10,6 +10,20 @@ class Connection: public std::enable_shared_from_this<Connection>
             return pointer(new Connection(ioService, invoker));
         }
 
+        void connect(void)
+        {
+            boost::asio::ip::tcp::resolver resolver(_socket.io_service());
+            boost::asio::ip::tcp::resolver::query query("localhost", "2000");
+            boost::asio::ip::tcp::resolver::iterator endpointsIter = resolver.resolve(query);
+            boost::asio::ip::tcp::resolver::iterator end;
+
+            boost::system::error_code error = boost::asio::error::host_not_found;
+            while (error && endpointsIter != end) {
+                _socket.close();
+                _socket.connect(*endpointsIter++, error);
+            }
+        }
+
         boost::asio::ip::tcp::socket & socket()
         {
             return _socket;
@@ -19,6 +33,15 @@ class Connection: public std::enable_shared_from_this<Connection>
         {
             boost::asio::async_read_until(_socket, _incoming, '\n',
                 std::bind(&Connection::handleRead, shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2));
+        }
+
+        void write(const std::string & message)
+        {
+            _message = message;
+            boost::asio::async_write(_socket, boost::asio::buffer(_message),
+                std::bind(&Connection::handleWrite, shared_from_this(),
                     std::placeholders::_1,
                     std::placeholders::_2));
         }
