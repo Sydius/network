@@ -24,6 +24,10 @@ class Connection: public std::enable_shared_from_this<Connection>
                 _socket.close();
                 _socket.connect(*endpointsIter++, error);
             }
+
+            if (error) {
+                throw boost::system::system_error(error);
+            }
         }
 
         boost::asio::ip::tcp::socket & socket()
