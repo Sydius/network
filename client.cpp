@@ -9,7 +9,7 @@ int main(int argc, char * argv[])
 {
     invoke::Invoker invoker;
     invoker.registerFunction("foo", foo);
-    std::string message = invoke::serialize("foo", foo, 5) + '\n';
+    std::string message = invoke::serialize("foo", foo, 5) + '\0';
 
     boost::asio::io_service ioService;
     Connection::pointer connection = Connection::create(ioService, invoker);
