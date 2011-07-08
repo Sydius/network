@@ -39,8 +39,7 @@ class Connection: public std::enable_shared_from_this<Connection>
 
         void write(const std::string & message)
         {
-            _message = message;
-            boost::asio::async_write(_socket, boost::asio::buffer(_message),
+            boost::asio::async_write(_socket, boost::asio::buffer(message + '\0'),
                 std::bind(&Connection::handleWrite, shared_from_this(),
                     std::placeholders::_1,
                     std::placeholders::_2));
@@ -70,6 +69,5 @@ class Connection: public std::enable_shared_from_this<Connection>
 
         boost::asio::streambuf _incoming;
         boost::asio::ip::tcp::socket _socket;
-        std::string _message;
         invoke::Invoker & _invoker;
 };
