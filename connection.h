@@ -60,17 +60,25 @@ class Connection: public std::enable_shared_from_this<Connection>
 
         void handleRead(const boost::system::error_code & error, size_t size)
         {
-            if (!error) {
-                std::istream is(&_incoming);
-                std::string line;
-                std::getline(is, line, '\0');
-                _invoker.invoke(line);
-                beginReading();
+            if (error) {
+                if (error != boost::asio::error::eof) {
+                    throw boost::system::system_error(error);
+                }
+                return;
             }
+
+            std::istream is(&_incoming);
+            std::string line;
+            std::getline(is, line, '\0');
+            _invoker.invoke(line);
+            beginReading();
         }
 
-        void handleWrite(const boost::system::error_code &, size_t)
+        void handleWrite(const boost::system::error_code & error, size_t)
         {
+            if (error && error != boost::asio::error::eof) {
+                throw boost::system::system_error(error);
+            }
         }
 
         boost::asio::streambuf _incoming;
