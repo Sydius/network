@@ -12,8 +12,7 @@ int main(int argc, char * argv[])
         invoker.registerFunction("foo", foo);
 
         boost::asio::io_service ioService;
-        Connection::pointer connection = Connection::create(ioService, invoker);
-        connection->connect("localhost", "2000");
+        Connection::pointer connection = Connection::connect(ioService, invoker, "localhost", "2000");
         connection->write(invoke::serialize("foo", foo, 5));
 
         ioService.run();

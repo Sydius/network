@@ -10,6 +10,14 @@ class Connection: public std::enable_shared_from_this<Connection>
             return pointer(new Connection(ioService, invoker));
         }
 
+        static pointer connect(boost::asio::io_service & ioService, const invoke::Invoker & invoker,
+                const std::string & hostname, const std::string & service)
+        {
+            pointer ptr = create(ioService, invoker);
+            ptr->connect(hostname, service);
+            return ptr;
+        }
+
         void connect(const std::string & hostname, const std::string & service)
         {
             using boost::asio::ip::tcp;
