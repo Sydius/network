@@ -12,10 +12,12 @@ class Connection: public std::enable_shared_from_this<Connection>
 
         void connect(const std::string & hostname, const std::string & service)
         {
-            boost::asio::ip::tcp::resolver resolver(_socket.io_service());
-            boost::asio::ip::tcp::resolver::query query(hostname, service);
-            boost::asio::ip::tcp::resolver::iterator endpointsIter = resolver.resolve(query);
-            boost::asio::ip::tcp::resolver::iterator end;
+            using boost::asio::ip::tcp;
+
+            tcp::resolver resolver(_socket.io_service());
+            tcp::resolver::query query(hostname, service);
+            tcp::resolver::iterator endpointsIter = resolver.resolve(query);
+            tcp::resolver::iterator end;
 
             boost::system::error_code error = boost::asio::error::host_not_found;
             while (error && endpointsIter != end) {
