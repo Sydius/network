@@ -13,7 +13,7 @@ int main(int argc, char * argv[])
 
     boost::asio::io_service ioService;
     Connection::pointer connection = Connection::create(ioService, invoker);
-    connection->connect();
+    connection->connect("localhost", "2000");
     connection->write(message);
 
     ioService.run();

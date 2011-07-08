@@ -10,10 +10,10 @@ class Connection: public std::enable_shared_from_this<Connection>
             return pointer(new Connection(ioService, invoker));
         }
 
-        void connect(void)
+        void connect(const std::string & hostname, const std::string & service)
         {
             boost::asio::ip::tcp::resolver resolver(_socket.io_service());
-            boost::asio::ip::tcp::resolver::query query("localhost", "2000");
+            boost::asio::ip::tcp::resolver::query query(hostname, service);
             boost::asio::ip::tcp::resolver::iterator endpointsIter = resolver.resolve(query);
             boost::asio::ip::tcp::resolver::iterator end;
 
