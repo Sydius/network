@@ -5,7 +5,7 @@ class Connection: public std::enable_shared_from_this<Connection>
     public:
         typedef std::shared_ptr<Connection> pointer;
 
-        static pointer create(boost::asio::io_service & ioService, invoke::Invoker & invoker)
+        static pointer create(boost::asio::io_service & ioService, const invoke::Invoker & invoker)
         {
             return pointer(new Connection(ioService, invoker));
         }
@@ -52,7 +52,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         }
 
     private:
-        Connection(boost::asio::io_service & ioService, invoke::Invoker & invoker)
+        Connection(boost::asio::io_service & ioService, const invoke::Invoker & invoker)
             : _socket(ioService)
             , _invoker(invoker)
         {
@@ -83,5 +83,5 @@ class Connection: public std::enable_shared_from_this<Connection>
 
         boost::asio::streambuf _incoming;
         boost::asio::ip::tcp::socket _socket;
-        invoke::Invoker & _invoker;
+        invoke::Invoker _invoker;
 };
