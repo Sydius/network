@@ -53,13 +53,15 @@ class Connection: public std::enable_shared_from_this<Connection>
         {
         }
 
-        void handleRead(const boost::system::error_code &, size_t)
+        void handleRead(const boost::system::error_code & error, size_t size)
         {
-            std::istream is(&_incoming);
-            std::string line;
-            std::getline(is, line);
-            _invoker.invoke(line);
-            beginReading();
+            if (!error) {
+                std::istream is(&_incoming);
+                std::string line;
+                std::getline(is, line);
+                _invoker.invoke(line);
+                beginReading();
+            }
         }
 
         void handleWrite(const boost::system::error_code &, size_t)
