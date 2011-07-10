@@ -16,5 +16,5 @@ def build(bld):
         includes=['../call-with-tuple', '../serialize-tuple', '../dynamic-invocation'],
         target='game',
         lib=['boost_system-mt', 'boost_serialization'],
-        cxxflags='-O3 --std=c++0x --pedantic -Wall'
+        cxxflags='-O3 --std=c++0x --pedantic -Wall -Wfatal-errors'
     )
