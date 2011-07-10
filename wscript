@@ -12,9 +12,9 @@ def configure(conf):
 
 def build(bld):
     bld.program(
-        source=['server.cpp', 'shared.cpp'],
+        source=['main.cpp', 'shared.cpp'],
         includes=['../call-with-tuple', '../serialize-tuple', '../dynamic-invocation'],
-        target='server',
+        target='game',
         lib=['boost_system-mt', 'boost_serialization'],
         cxxflags='-O3 --std=c++0x --pedantic -Wall'
     )
