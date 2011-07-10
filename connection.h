@@ -56,9 +56,12 @@ class Connection: public std::enable_shared_from_this<Connection>
                     std::placeholders::_2));
         }
 
-        void write(const std::string & message)
+        template<typename... Args>
+        void execute(Args && ... args)
         {
-            boost::asio::async_write(_socket, boost::asio::buffer(message + '\0'),
+            std::string toSend{_invoker.serialize(std::forward<Args>(args)...)};
+
+            boost::asio::async_write(_socket, boost::asio::buffer(toSend + '\0'),
                 std::bind(&Connection::handleWrite, shared_from_this(),
                     std::placeholders::_1,
                     std::placeholders::_2));

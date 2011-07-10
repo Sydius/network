@@ -11,7 +11,7 @@ int main(int argc, char * argv[])
 
         boost::asio::io_service ioService;
         Connection::pointer connection = Connection::connect(ioService, invoker, "localhost", "2000");
-        connection->write(invoker.serialize("foo", foo, 5));
+        connection->execute("foo", foo, 5);
 
         ioService.run();
     } catch (const std::exception & e) {
