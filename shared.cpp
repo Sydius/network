@@ -2,17 +2,24 @@
 
 #include <iostream>
 
-void foo(int x, Connection::pointer connection)
+void ping(int x, Connection::pointer connection)
 {
-    std::cout << x << std::endl;
+    std::cout << "Ping: " << x << std::endl;
     if (x < 100) {
-        connection->execute(CLIENT_RPC(foo), x+1);
+        connection->execute(SERVER_RPC(pong), x+1, "HELLO");
     }
+}
+
+void pong(int x, const std::string & message, Connection::pointer connection)
+{
+    std::cout << "Pong: " << x << ":" << message << std::endl;
+    connection->execute(CLIENT_RPC(ping), x+1);
 }
 
 Connection::RPCInvoker RPCMethods()
 {
     Connection::RPCInvoker invoker;
-    invoker.registerFunction(CLIENT_RPC(foo));
+    invoker.registerFunction(CLIENT_RPC(ping));
+    invoker.registerFunction(SERVER_RPC(pong));
     return invoker;
 }

@@ -30,8 +30,13 @@ int main(int argc, char * argv[])
         }
 
         if (connectToServer) {
-            Connection::pointer connection = Connection::connect(ioService, RPCMethods(), "localhost", "2000");
-            connection->execute(CLIENT_RPC(foo), 5);
+            Connection::pointer connection{Connection::connect(ioService, RPCMethods(), "localhost", "2000")};
+            connection->execute(SERVER_RPC(pong), 5, "FOO!");
+        }
+        
+        if (!runServer && !connectToServer) {
+            Connection::pointer connection{Connection::create(ioService, RPCMethods())};
+            connection->execute(SERVER_RPC(pong), 3, "FIRST!");
         }
 
         ioService.run();
