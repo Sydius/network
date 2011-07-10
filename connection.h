@@ -65,17 +65,12 @@ class Connection: public std::enable_shared_from_this<Connection>
         }
 
         template<typename Function, typename... Args>
-        void execute(std::string && name, Function function, Args && ... args)
+        inline void execute(std::string && name, Function function, Args && ... args)
         {
             if (_fake) {
                 function(std::forward<Args>(args)..., shared_from_this());
             } else {
-                std::string toSend{_invoker.serialize(std::forward<std::string>(name), function, std::forward<Args>(args)...)};
-
-                boost::asio::async_write(_socket, boost::asio::buffer(toSend + '\0'),
-                    std::bind(&Connection::handleWrite, shared_from_this(),
-                        std::placeholders::_1,
-                        std::placeholders::_2));
+                remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
             }
         }
 
@@ -85,6 +80,17 @@ class Connection: public std::enable_shared_from_this<Connection>
             , _invoker(invoker)
             , _fake(true)
         {
+        }
+
+        template<typename Function, typename... Args>
+        void remoteExecute(std::string && name, Function function, Args && ... args)
+        {
+            std::string toSend{_invoker.serialize(std::forward<std::string>(name), function, std::forward<Args>(args)...)};
+
+            boost::asio::async_write(_socket, boost::asio::buffer(toSend + '\0'),
+                std::bind(&Connection::handleWrite, shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2));
         }
 
         void handleRead(const boost::system::error_code & error, size_t size)
