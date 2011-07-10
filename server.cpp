@@ -8,7 +8,7 @@
 class Server
 {
     public:
-        Server(boost::asio::io_service & ioService, const invoke::Invoker<> & invoker)
+        Server(boost::asio::io_service & ioService, const Connection::RPCInvoker & invoker)
             : _acceptor(ioService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 2000))
             , _invoker(invoker)
         {
@@ -32,13 +32,13 @@ class Server
         }
 
         boost::asio::ip::tcp::acceptor _acceptor;
-        invoke::Invoker<> _invoker;
+        Connection::RPCInvoker _invoker;
 };
 
 int main(int argc, char * argv[])
 {
     try {
-        invoke::Invoker<> invoker;
+        Connection::RPCInvoker invoker;
         invoker.registerFunction("foo", foo);
         
         boost::asio::io_service ioService;

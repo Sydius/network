@@ -8,7 +8,7 @@
 int main(int argc, char * argv[])
 {
     try {
-        invoke::Invoker<> invoker;
+        Connection::RPCInvoker invoker;
         invoker.registerFunction("foo", foo);
 
         boost::asio::io_service ioService;
