@@ -9,7 +9,7 @@ int main(int argc, char * argv[])
         Connection::RPCInvoker invoker;
         invoker.registerFunction("foo", foo);
 
-        boost::asio::io_service ioService;
+        Connection::IOService ioService;
         Connection::pointer connection = Connection::connect(ioService, invoker, "localhost", "2000");
         connection->execute("foo", foo, 5);
 

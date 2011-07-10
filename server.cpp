@@ -6,7 +6,7 @@
 class Server
 {
     public:
-        Server(boost::asio::io_service & ioService, const Connection::RPCInvoker & invoker)
+        Server(Connection::IOService & ioService, const Connection::RPCInvoker & invoker)
             : _acceptor(ioService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 2000))
             , _invoker(invoker)
         {
@@ -39,7 +39,7 @@ int main(int argc, char * argv[])
         Connection::RPCInvoker invoker;
         invoker.registerFunction("foo", foo);
         
-        boost::asio::io_service ioService;
+        Connection::IOService ioService;
 
         Server server(ioService, invoker);
         ioService.run();

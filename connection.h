@@ -9,13 +9,14 @@ class Connection: public std::enable_shared_from_this<Connection>
     public:
         typedef std::shared_ptr<Connection> pointer;
         typedef invoke::Invoker<Connection::pointer> RPCInvoker;
+        typedef boost::asio::io_service IOService;
 
-        static pointer create(boost::asio::io_service & ioService, const RPCInvoker & invoker)
+        static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker)
         {
             return pointer(new Connection(ioService, invoker));
         }
 
-        static pointer connect(boost::asio::io_service & ioService, const RPCInvoker & invoker,
+        static pointer connect(Connection::IOService & ioService, const RPCInvoker & invoker,
                 const std::string & hostname, const std::string & service)
         {
             pointer ptr = create(ioService, invoker);
@@ -68,7 +69,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         }
 
     private:
-        Connection(boost::asio::io_service & ioService, const RPCInvoker & invoker)
+        Connection(Connection::IOService & ioService, const RPCInvoker & invoker)
             : _socket(ioService)
             , _invoker(invoker)
         {
