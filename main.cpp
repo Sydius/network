@@ -23,19 +23,20 @@ int main(int argc, char * argv[])
 
     try {
         Connection::IOService ioService;
+        Connection::RPCInvoker rpcInvoker{RPCMethods()};
         std::shared_ptr<Server> server;
 
         if (runServer) {
-            server = std::shared_ptr<Server>{new Server(ioService, RPCMethods())};
+            server = std::shared_ptr<Server>{new Server(ioService, rpcInvoker)};
         }
 
         if (connectToServer) {
-            Connection::pointer connection{Connection::connect(ioService, RPCMethods(), "localhost", "2000")};
+            Connection::pointer connection{Connection::connect(ioService, rpcInvoker, "localhost", "2000")};
             connection->execute(SERVER_RPC(pong), 5, "FOO!");
         }
         
         if (!runServer && !connectToServer) {
-            Connection::pointer connection{Connection::create(ioService, RPCMethods())};
+            Connection::pointer connection{Connection::create(ioService, rpcInvoker)};
             connection->execute(SERVER_RPC(pong), 3, "FIRST!");
         }
 
