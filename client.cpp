@@ -6,12 +6,9 @@
 int main(int argc, char * argv[])
 {
     try {
-        Connection::RPCInvoker invoker;
-        invoker.registerFunction("foo", foo);
-
         Connection::IOService ioService;
-        Connection::pointer connection = Connection::connect(ioService, invoker, "localhost", "2000");
-        connection->execute("foo", foo, 5);
+        Connection::pointer connection = Connection::connect(ioService, RPCMethods(), "localhost", "2000");
+        connection->execute(CLIENT_RPC(foo), 5);
 
         ioService.run();
     } catch (const std::exception & e) {

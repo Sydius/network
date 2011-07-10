@@ -36,12 +36,8 @@ class Server
 int main(int argc, char * argv[])
 {
     try {
-        Connection::RPCInvoker invoker;
-        invoker.registerFunction("foo", foo);
-        
         Connection::IOService ioService;
-
-        Server server(ioService, invoker);
+        Server server(ioService, RPCMethods());
         ioService.run();
     } catch (std::exception & e) {
         std::cerr << e.what() << std::endl;

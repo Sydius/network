@@ -4,6 +4,10 @@
 #include <boost/asio.hpp>
 #include "invoke.h"
 
+#define RPC(x) #x, x
+#define CLIENT_RPC(x) "C$" RPC(x)
+#define SERVER_RPC(x) "S$" RPC(x)
+
 class Connection: public std::enable_shared_from_this<Connection>
 {
     public:
