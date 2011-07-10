@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <boost/asio.hpp>
 #include "shared.h"
 #include "invoke.h"
 #include "connection.h"

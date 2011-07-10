@@ -1,10 +1,14 @@
 #pragma once
 
+#include <memory>
+#include <boost/asio.hpp>
+#include "invoke.h"
+
 class Connection: public std::enable_shared_from_this<Connection>
 {
     public:
         typedef std::shared_ptr<Connection> pointer;
-        typedef invoke::Invoker<> RPCInvoker;
+        typedef invoke::Invoker<Connection::pointer> RPCInvoker;
 
         static pointer create(boost::asio::io_service & ioService, const RPCInvoker & invoker)
         {
@@ -79,7 +83,7 @@ class Connection: public std::enable_shared_from_this<Connection>
             std::istream is(&_incoming);
             std::string line;
             std::getline(is, line, '\0');
-            _invoker.invoke(line);
+            _invoker.invoke(line, shared_from_this());
             beginReading();
         }
 
