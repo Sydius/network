@@ -42,6 +42,8 @@ class Connection: public std::enable_shared_from_this<Connection>
             if (error) {
                 throw boost::system::system_error(error);
             }
+
+            beginReading();
         }
 
         boost::asio::ip::tcp::socket & socket()
