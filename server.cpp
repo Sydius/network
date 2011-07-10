@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include "shared.h"
-#include "invoke.h"
 #include "connection.h"
 
 class Server
