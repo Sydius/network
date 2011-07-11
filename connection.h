@@ -58,7 +58,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         void beginReading()
         {
             _fake = false;
-            boost::asio::async_read_until(_socket, _incoming, '\0',
+            boost::asio::async_read_until(_socket, _incoming, PACKET_END,
                 std::bind(&Connection::handleRead, shared_from_this(),
                     std::placeholders::_1,
                     std::placeholders::_2));
@@ -87,7 +87,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         {
             std::string toSend{_invoker.serialize(std::forward<std::string>(name), function, std::forward<Args>(args)...)};
 
-            boost::asio::async_write(_socket, boost::asio::buffer(toSend + '\0'),
+            boost::asio::async_write(_socket, boost::asio::buffer(toSend + PACKET_END),
                 std::bind(&Connection::handleWrite, shared_from_this(),
                     std::placeholders::_1,
                     std::placeholders::_2));
@@ -104,7 +104,7 @@ class Connection: public std::enable_shared_from_this<Connection>
 
             std::istream is(&_incoming);
             std::string line;
-            std::getline(is, line, '\0');
+            std::getline(is, line, PACKET_END);
             _invoker.invoke(line, shared_from_this());
             beginReading();
         }
@@ -120,4 +120,5 @@ class Connection: public std::enable_shared_from_this<Connection>
         boost::asio::ip::tcp::socket _socket;
         RPCInvoker _invoker;
         bool _fake;
+        static const char PACKET_END = '\0';
 };
