@@ -15,17 +15,80 @@ class Connection: public std::enable_shared_from_this<Connection>
         typedef invoke::Invoker<Connection::pointer> RPCInvoker;
         typedef boost::asio::io_service IOService;
 
+        /**
+         * Create a new connection object
+         *
+         * @param ioService IOService to use (not used if never connected)
+         * @param invoker   RPC invoker to use with this connection
+         * @return          A shared pointer to a new connection object
+         */
         static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker)
         {
             return pointer(new Connection(ioService, invoker));
         }
 
+        /**
+         * Create a new connection to a remote server
+         *
+         * @param ioService IOService to use
+         * @param invoker   RPC invoker to use with this connection
+         * @param hostname  Host name to connect to
+         * @param port      Port to connect to
+         * @return          A shared pointer to a new connection object
+         */
         static pointer connect(Connection::IOService & ioService, const RPCInvoker & invoker,
                 const std::string & hostname, unsigned short port)
         {
             pointer ptr = create(ioService, invoker);
             ptr->connect(hostname, port);
             return ptr;
+        }
+
+        /**
+         * Retrieve the socket for the connection
+         *
+         * @return  Socket that belongs to this connection
+         */
+        boost::asio::ip::tcp::socket & socket()
+        {
+            return _socket;
+        }
+
+        /**
+         * Begin reading on this connection
+         */
+        void beginReading()
+        {
+            _connected = true;
+            boost::asio::async_read_until(_socket, _incoming, PACKET_END,
+                std::bind(&Connection::handleRead, shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2));
+        }
+
+        /**
+         * Execute an RPC on the other end of this connection (or immediately locally if not connected)
+         *
+         * @param name      Name of RPC method
+         * @param function  Function definition for type-safety checking
+         * @param args...   Arguments to pass to the RPC method
+         */
+        template<typename Function, typename... Args>
+        inline void execute(std::string && name, Function function, Args && ... args)
+        {
+            if (_connected) {
+                remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
+            } else {
+                function(std::forward<Args>(args)..., shared_from_this());
+            }
+        }
+
+    private:
+        Connection(Connection::IOService & ioService, const RPCInvoker & invoker)
+            : _socket(ioService)
+            , _invoker(invoker)
+            , _connected(false)
+        {
         }
 
         void connect(const std::string & hostname, unsigned short port)
@@ -49,38 +112,6 @@ class Connection: public std::enable_shared_from_this<Connection>
             }
 
             beginReading();
-        }
-
-        boost::asio::ip::tcp::socket & socket()
-        {
-            return _socket;
-        }
-
-        void beginReading()
-        {
-            _connected = true;
-            boost::asio::async_read_until(_socket, _incoming, PACKET_END,
-                std::bind(&Connection::handleRead, shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2));
-        }
-
-        template<typename Function, typename... Args>
-        inline void execute(std::string && name, Function function, Args && ... args)
-        {
-            if (_connected) {
-                remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
-            } else {
-                function(std::forward<Args>(args)..., shared_from_this());
-            }
-        }
-
-    private:
-        Connection(Connection::IOService & ioService, const RPCInvoker & invoker)
-            : _socket(ioService)
-            , _invoker(invoker)
-            , _connected(false)
-        {
         }
 
         template<typename Function, typename... Args>
