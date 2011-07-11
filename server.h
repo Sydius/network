@@ -16,23 +16,31 @@ class Server
             : _acceptor(ioService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
             , _invoker(invoker)
         {
-            startAccept();
+            startAccept(); // Start accepting connections immediately
         }
 
     private:
         void startAccept()
         {
+            // Prepare a new connection to accept onto
             Connection::pointer newConnection = Connection::create(_acceptor.io_service(), _invoker);
+
+            // Wait for one to accept (will call handleAccept)
             _acceptor.async_accept(newConnection->socket(),
                 std::bind(&Server::handleAccept, this, newConnection, std::placeholders::_1));
         }
 
         void handleAccept(Connection::pointer newConnection, const boost::system::error_code & error)
         {
-            if (!error) {
-                newConnection->beginReading();
-                startAccept();
+            if (error) {
+                throw boost::system::system_error(error);
             }
+
+            // Begin reading on the new connection
+            newConnection->beginReading();
+
+            // Wait for the next connection
+            startAccept();
         }
 
         boost::asio::ip::tcp::acceptor _acceptor;
