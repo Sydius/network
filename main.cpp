@@ -31,7 +31,7 @@ int main(int argc, char * argv[])
         }
 
         if (connectToServer) {
-            Connection::pointer connection{Connection::connect(ioService, rpcInvoker, "localhost", "2000")};
+            Connection::pointer connection{Connection::connect(ioService, rpcInvoker, "localhost", 2000)};
             connection->execute(SERVER_RPC(pong), 5, "FOO!");
         }
         

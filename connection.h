@@ -21,26 +21,29 @@ class Connection: public std::enable_shared_from_this<Connection>
         }
 
         static pointer connect(Connection::IOService & ioService, const RPCInvoker & invoker,
-                const std::string & hostname, const std::string & service)
+                const std::string & hostname, unsigned short port)
         {
             pointer ptr = create(ioService, invoker);
-            ptr->connect(hostname, service);
+            ptr->connect(hostname, port);
             return ptr;
         }
 
-        void connect(const std::string & hostname, const std::string & service)
+        void connect(const std::string & hostname, unsigned short port)
         {
             using boost::asio::ip::tcp;
 
             tcp::resolver resolver(_socket.io_service());
-            tcp::resolver::query query(hostname, service);
+            tcp::resolver::query query(hostname, "0"); // The port is set later, directly
             tcp::resolver::iterator endpointsIter = resolver.resolve(query);
             tcp::resolver::iterator end;
 
             boost::system::error_code error = boost::asio::error::host_not_found;
             while (error && endpointsIter != end) {
                 _socket.close();
-                _socket.connect(*endpointsIter++, error);
+                tcp::endpoint endPoint = *endpointsIter;
+                endPoint.port(port);
+                _socket.connect(endPoint, error);
+                endpointsIter++;
             }
 
             if (error) {
