@@ -34,16 +34,14 @@ class Connection: public std::enable_shared_from_this<Connection>
 
             tcp::resolver resolver(_socket.io_service());
             tcp::resolver::query query(hostname, "0"); // The port is set later, directly
-            tcp::resolver::iterator endpointsIter = resolver.resolve(query);
             tcp::resolver::iterator end;
 
             boost::system::error_code error = boost::asio::error::host_not_found;
-            while (error && endpointsIter != end) {
+            for (auto endpointsIter = resolver.resolve(query); error && endpointsIter != end; endpointsIter++) {
                 _socket.close();
                 tcp::endpoint endPoint = *endpointsIter;
                 endPoint.port(port);
                 _socket.connect(endPoint, error);
-                endpointsIter++;
             }
 
             if (error) {
