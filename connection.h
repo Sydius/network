@@ -58,7 +58,7 @@ class Connection: public std::enable_shared_from_this<Connection>
 
         void beginReading()
         {
-            _noConnection = false;
+            _connected = true;
             boost::asio::async_read_until(_socket, _incoming, PACKET_END,
                 std::bind(&Connection::handleRead, shared_from_this(),
                     std::placeholders::_1,
@@ -68,10 +68,10 @@ class Connection: public std::enable_shared_from_this<Connection>
         template<typename Function, typename... Args>
         inline void execute(std::string && name, Function function, Args && ... args)
         {
-            if (_noConnection) {
-                function(std::forward<Args>(args)..., shared_from_this());
-            } else {
+            if (_connected) {
                 remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
+            } else {
+                function(std::forward<Args>(args)..., shared_from_this());
             }
         }
 
@@ -79,7 +79,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         Connection(Connection::IOService & ioService, const RPCInvoker & invoker)
             : _socket(ioService)
             , _invoker(invoker)
-            , _noConnection(true)
+            , _connected(false)
         {
         }
 
@@ -120,6 +120,6 @@ class Connection: public std::enable_shared_from_this<Connection>
         boost::asio::streambuf _incoming;
         boost::asio::ip::tcp::socket _socket;
         RPCInvoker _invoker;
-        bool _noConnection;
+        bool _connected;
         static const char PACKET_END = '\0';
 };
