@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
         std::shared_ptr<Server> server;
 
         if (runServer) {
-            server = std::shared_ptr<Server>{new Server(ioService, rpcInvoker)};
+            server = std::shared_ptr<Server>{new Server(ioService, rpcInvoker, 2000)};
         }
 
         if (connectToServer) {

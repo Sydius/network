@@ -5,8 +5,8 @@
 class Server
 {
     public:
-        Server(Connection::IOService & ioService, const Connection::RPCInvoker & invoker)
-            : _acceptor(ioService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), 2000))
+        Server(Connection::IOService & ioService, const Connection::RPCInvoker & invoker, unsigned short port)
+            : _acceptor(ioService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
             , _invoker(invoker)
         {
             startAccept();
