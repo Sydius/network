@@ -1,8 +1,8 @@
 #include <iostream>
+#include <boost/lexical_cast.hpp>
 #include <pantheios/pantheios.hpp>
 #include <pantheios/frontends/stock.h>
 #include <pantheios/inserters/args.hpp>
-#include <pantheios/inserters/integer.hpp>
 #include <pantheios/inserters/exception.hpp>
 #include "shared.h"
 #include "connection.h"
@@ -56,7 +56,7 @@ int main(int argc, char * argv[])
 
         ioService.run();
     } catch (const boost::system::system_error & e) {
-        pantheios::log_ALERT("System error (", e.code().category().name(), ":", pantheios::integer(e.code().value()), "): ", pantheios::exception(e));
+        pantheios::log_ALERT("System error (", boost::lexical_cast<std::string>(e.code()), "): ", pantheios::exception(e));
     } catch (const std::exception & e) {
         pantheios::log_CRITICAL("Exception: ", pantheios::exception(e));
     } catch (...) {
