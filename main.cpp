@@ -1,24 +1,38 @@
 #include <iostream>
+#include <pantheios/pantheios.hpp>
+#include <pantheios/frontends/stock.h>
+#include <pantheios/inserters/args.hpp>
+#include <pantheios/inserters/integer.hpp>
+#include <pantheios/inserters/exception.hpp>
 #include "shared.h"
 #include "connection.h"
 #include "server.h"
+
+const PAN_CHAR_T PANTHEIOS_FE_PROCESS_IDENTITY[] = "game";
 
 int main(int argc, char * argv[])
 {
     bool runServer = false;
     bool connectToServer = false;
 
+    pantheios::log_DEBUG("Entering program (", pantheios::args(argc, argv, pantheios::args::arg0FileOnly), ")");
+
     switch (atoi(argv[1])) {
         case 0:
+            pantheios::log_DEBUG("Dedicated server mode chosen");
             runServer = true;
             break;
         case 1:
+            pantheios::log_DEBUG("Dedicated client mode chosen");
             connectToServer = true;
             break;
         case 2:
+            pantheios::log_DEBUG("Client and server mode chosen");
             runServer = true;
             connectToServer = true;
             break;
+        default:
+            pantheios::log_DEBUG("No connection mode chosen");
     }
 
     try {
@@ -42,10 +56,14 @@ int main(int argc, char * argv[])
 
         ioService.run();
     } catch (const boost::system::system_error & e) {
-        std::cerr << "System error (" << e.code() << "): " << e.what() << std::endl;
+        pantheios::log_ALERT("System error (", e.code().category().name(), ":", pantheios::integer(e.code().value()), "): ", pantheios::exception(e));
     } catch (const std::exception & e) {
-        std::cerr << "Uncaught exception: " << e.what() << std::endl;
+        pantheios::log_CRITICAL("Exception: ", pantheios::exception(e));
+    } catch (...) {
+        pantheios::log_EMERGENCY("Unknown exception");
     }
+
+    pantheios::log_DEBUG("Exiting program");
 
     return 0;
 }

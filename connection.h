@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <boost/asio.hpp>
+#include <pantheios/pantheios.hpp>
 #include "invoke.h"
 
 #define RPC(x) #x, x
@@ -76,11 +77,17 @@ class Connection: public std::enable_shared_from_this<Connection>
         template<typename Function, typename... Args>
         inline void execute(std::string && name, Function function, Args && ... args)
         {
+            pantheios::log_DEBUG("RPC executed: ", name);
             if (_connected) {
                 remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
             } else {
                 function(std::forward<Args>(args)..., shared_from_this());
             }
+        }
+
+        ~Connection()
+        {
+            pantheios::log_DEBUG("Connection destroyed");
         }
 
     private:
@@ -89,6 +96,7 @@ class Connection: public std::enable_shared_from_this<Connection>
             , _invoker(invoker)
             , _connected(false)
         {
+            pantheios::log_DEBUG("Connection created");
         }
 
         void connect(const std::string & hostname, unsigned short port)
