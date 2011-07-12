@@ -1,12 +1,7 @@
 #include <iostream>
-#include <boost/lexical_cast.hpp>
-#include <pantheios/pantheios.hpp>
-#include <pantheios/frontends/stock.h>
-#include <pantheios/inserters/args.hpp>
-#include <pantheios/inserters/exception.hpp>
 #include "shared.h"
-#include "connection.h"
 #include "server.h"
+#include "connection.h"
 
 const PAN_CHAR_T PANTHEIOS_FE_PROCESS_IDENTITY[] = "game";
 
@@ -15,24 +10,24 @@ int main(int argc, char * argv[])
     bool runServer = false;
     bool connectToServer = false;
 
-    pantheios::log_DEBUG("Entering program (", pantheios::args(argc, argv, pantheios::args::arg0FileOnly), ")");
+    LOG_DEBUG("Entering program");
 
     switch (atoi(argv[1])) {
         case 0:
-            pantheios::log_DEBUG("Dedicated server mode chosen");
+            LOG_DEBUG("Dedicated server mode chosen");
             runServer = true;
             break;
         case 1:
-            pantheios::log_DEBUG("Dedicated client mode chosen");
+            LOG_DEBUG("Dedicated client mode chosen");
             connectToServer = true;
             break;
         case 2:
-            pantheios::log_DEBUG("Client and server mode chosen");
+            LOG_DEBUG("Client and server mode chosen");
             runServer = true;
             connectToServer = true;
             break;
         default:
-            pantheios::log_DEBUG("No connection mode chosen");
+            LOG_DEBUG("No connection mode chosen");
     }
 
     try {
@@ -56,14 +51,14 @@ int main(int argc, char * argv[])
 
         ioService.run();
     } catch (const boost::system::system_error & e) {
-        pantheios::log_ALERT("System error (", boost::lexical_cast<std::string>(e.code()), "): ", pantheios::exception(e));
+        LOG_CRITICAL("System error (", e.code(), "): ", e.what());
     } catch (const std::exception & e) {
-        pantheios::log_CRITICAL("Exception: ", pantheios::exception(e));
+        LOG_ALERT("Exception: ", e.what());
     } catch (...) {
-        pantheios::log_EMERGENCY("Unknown exception");
+        LOG_EMERGENCY("Unknown exception");
     }
 
-    pantheios::log_DEBUG("Exiting program");
+    LOG_DEBUG("Exiting program");
 
     return 0;
 }

@@ -2,8 +2,8 @@
 
 #include <memory>
 #include <boost/asio.hpp>
-#include <pantheios/pantheios.hpp>
 #include "invoke.h"
+#include "log.h"
 
 #define RPC(x) #x, x
 #define CLIENT_RPC(x) "C$" RPC(x)
@@ -77,7 +77,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         template<typename Function, typename... Args>
         inline void execute(std::string && name, Function function, Args && ... args)
         {
-            pantheios::log_DEBUG("RPC executed: ", name);
+            LOG_DEBUG("RPC executed: ", name);
             if (_connected) {
                 remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
             } else {
@@ -87,7 +87,7 @@ class Connection: public std::enable_shared_from_this<Connection>
 
         ~Connection()
         {
-            pantheios::log_DEBUG("Connection destroyed");
+            LOG_DEBUG("Connection destroyed");
         }
 
     private:
@@ -96,7 +96,7 @@ class Connection: public std::enable_shared_from_this<Connection>
             , _invoker(invoker)
             , _connected(false)
         {
-            pantheios::log_DEBUG("Connection created");
+            LOG_DEBUG("Connection created");
         }
 
         void connect(const std::string & hostname, unsigned short port)
@@ -106,18 +106,22 @@ class Connection: public std::enable_shared_from_this<Connection>
             tcp::resolver resolver(_socket.io_service());
             tcp::resolver::query query(hostname, "0"); // The port is set later, directly
             tcp::resolver::iterator end;
+            tcp::endpoint endPoint;
 
             boost::system::error_code error = boost::asio::error::host_not_found;
             for (auto endpointsIter = resolver.resolve(query); error && endpointsIter != end; endpointsIter++) {
                 _socket.close();
-                tcp::endpoint endPoint = *endpointsIter;
+                endPoint = *endpointsIter;
                 endPoint.port(port);
+                LOG_INFO("Connection attempt: ", endPoint);
                 _socket.connect(endPoint, error);
             }
 
             if (error) {
                 throw boost::system::system_error(error);
             }
+
+            LOG_NOTICE("Connected: ", endPoint);
 
             beginReading();
         }
