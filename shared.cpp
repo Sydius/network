@@ -5,8 +5,10 @@
 void ping(int x, Connection::pointer connection)
 {
     std::cout << "Ping: " << x << std::endl;
-    if (x < 100) {
+    if (x < 10) {
         connection->execute(SERVER_RPC(pong), x+1, "HELLO");
+    } else {
+        connection->disconnect();
     }
 }
 

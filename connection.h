@@ -15,6 +15,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         typedef std::shared_ptr<Connection> pointer;
         typedef invoke::Invoker<Connection::pointer> RPCInvoker;
         typedef boost::asio::io_service IOService;
+        typedef std::function<void (boost::system::error_code)> DisconnectHandler;
 
         /**
          * Create a new connection object
@@ -57,14 +58,14 @@ class Connection: public std::enable_shared_from_this<Connection>
 
         /**
          * Begin reading on this connection
+         *
+         * @param disconnectHandler Function to call when this connection disconnects
          */
-        void beginReading()
+        void beginReading(const DisconnectHandler & disconnectHandler)
         {
-            _connected = true;
-            boost::asio::async_read_until(_socket, _incoming, PACKET_END,
-                std::bind(&Connection::handleRead, shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2));
+            _disconnectHandler = disconnectHandler;
+            _shouldCallDisconnectHandler = true;
+            read();
         }
 
         /**
@@ -90,11 +91,36 @@ class Connection: public std::enable_shared_from_this<Connection>
             LOG_DEBUG("Connection destroyed");
         }
 
+        void disconnect()
+        {
+            _connected = false;
+            if (!_lastErrorCode) {
+                LOG_DEBUG("Shutting down socket");
+                _socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, _lastErrorCode);
+            }
+
+            if (!_lastErrorCode) {
+                LOG_DEBUG("Closing socket");
+                _socket.close(_lastErrorCode);
+            }
+
+            if (_shouldCallDisconnectHandler) {
+                _disconnectHandler(_lastErrorCode);
+            }
+
+            if (_lastErrorCode && _lastErrorCode != boost::asio::error::eof) {
+                throw boost::system::system_error(_lastErrorCode);
+            }
+
+            LOG_DEBUG("Connection disconnected");
+        }
+
     private:
         Connection(Connection::IOService & ioService, const RPCInvoker & invoker)
             : _socket(ioService)
             , _invoker(invoker)
             , _connected(false)
+            , _shouldCallDisconnectHandler(false)
         {
             LOG_DEBUG("Connection created");
         }
@@ -118,12 +144,14 @@ class Connection: public std::enable_shared_from_this<Connection>
             }
 
             if (error) {
-                throw boost::system::system_error(error);
+                _lastErrorCode = error;
+                disconnect();
+                return;
             }
 
             LOG_NOTICE("Connected: ", endPoint);
 
-            beginReading();
+            read();
         }
 
         template<typename Function, typename... Args>
@@ -137,12 +165,20 @@ class Connection: public std::enable_shared_from_this<Connection>
                     std::placeholders::_2));
         }
 
+        void read()
+        {
+            _connected = true;
+            boost::asio::async_read_until(_socket, _incoming, PACKET_END,
+                std::bind(&Connection::handleRead, shared_from_this(),
+                    std::placeholders::_1,
+                    std::placeholders::_2));
+        }
+
         void handleRead(const boost::system::error_code & error, size_t size)
         {
             if (error) {
-                if (error != boost::asio::error::eof) {
-                    throw boost::system::system_error(error);
-                }
+                _lastErrorCode = error;
+                disconnect();
                 return;
             }
 
@@ -150,13 +186,18 @@ class Connection: public std::enable_shared_from_this<Connection>
             std::string line;
             std::getline(is, line, PACKET_END);
             _invoker.invoke(line, shared_from_this());
-            beginReading();
+
+            if (_connected) {
+                read();
+            }
         }
 
         void handleWrite(const boost::system::error_code & error, size_t)
         {
-            if (error && error != boost::asio::error::eof) {
-                throw boost::system::system_error(error);
+            if (error) {
+                _lastErrorCode = error;
+                disconnect();
+                return;
             }
         }
 
@@ -164,5 +205,8 @@ class Connection: public std::enable_shared_from_this<Connection>
         boost::asio::ip::tcp::socket _socket;
         RPCInvoker _invoker;
         bool _connected;
+        DisconnectHandler _disconnectHandler;
+        bool _shouldCallDisconnectHandler;
+        boost::system::error_code _lastErrorCode;
         static const char PACKET_END = '\0';
 };

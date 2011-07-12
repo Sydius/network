@@ -40,10 +40,15 @@ class Server
             LOG_NOTICE("Client connected: ", newConnection->socket().remote_endpoint());
 
             // Begin reading on the new connection
-            newConnection->beginReading();
+            newConnection->beginReading(std::bind(&Server::handleDisconnect, this, newConnection, std::placeholders::_1));
 
             // Wait for the next connection
             startAccept();
+        }
+
+        void handleDisconnect(Connection::pointer connection, const boost::system::error_code & error)
+        {
+            LOG_NOTICE("Client disconnected: ", connection->socket().remote_endpoint());
         }
 
         boost::asio::ip::tcp::acceptor _acceptor;
