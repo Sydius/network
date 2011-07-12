@@ -17,6 +17,7 @@ class Server
             , _invoker(invoker)
         {
             startAccept(); // Start accepting connections immediately
+            LOG_NOTICE("Accepting connections at ", _acceptor.local_endpoint());
         }
 
     private:
@@ -35,6 +36,8 @@ class Server
             if (error) {
                 throw boost::system::system_error(error);
             }
+
+            LOG_NOTICE("Client connected: ", newConnection->socket().remote_endpoint());
 
             // Begin reading on the new connection
             newConnection->beginReading();
