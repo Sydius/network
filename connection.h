@@ -2,6 +2,9 @@
 
 #include <memory>
 #include <boost/asio.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 #include "invoke.h"
 #include "log.h"
 
@@ -22,11 +25,12 @@ class Connection: public std::enable_shared_from_this<Connection>
          *
          * @param ioService IOService to use (not used if never connected)
          * @param invoker   RPC invoker to use with this connection
+         * @param uuid      UUID for the connection
          * @return          A shared pointer to a new connection object
          */
-        static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker)
+        static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid = boost::uuids::nil_uuid())
         {
-            return pointer(new Connection(ioService, invoker));
+            return pointer(new Connection(ioService, invoker, uuid));
         }
 
         /**
@@ -44,6 +48,26 @@ class Connection: public std::enable_shared_from_this<Connection>
             pointer ptr = create(ioService, invoker);
             ptr->connect(hostname, port);
             return ptr;
+        }
+
+        /**
+         * Get the UUID of the connection.
+         *
+         * @return  UUID of the connection
+         */
+        boost::uuids::uuid uuid() const
+        {
+            return _uuid;
+        }
+
+        /**
+         * Set the UUID of the connection
+         *
+         * @param uuid  UUID to set the connect to
+         */
+        void uuid(const boost::uuids::uuid & uuid)
+        {
+            _uuid = uuid;
         }
 
         /**
@@ -120,11 +144,12 @@ class Connection: public std::enable_shared_from_this<Connection>
         }
 
     private:
-        Connection(Connection::IOService & ioService, const RPCInvoker & invoker)
+        Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid)
             : _socket(ioService)
             , _invoker(invoker)
             , _connected(false)
             , _shouldCallDisconnectHandler(false)
+            , _uuid(uuid)
         {
             LOG_DEBUG("Connection created");
         }
@@ -215,5 +240,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         DisconnectHandler _disconnectHandler;
         bool _shouldCallDisconnectHandler;
         boost::system::error_code _lastErrorCode;
+        boost::uuids::uuid _uuid;
+
         static const char PACKET_END = '\0';
 };
