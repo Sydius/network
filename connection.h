@@ -86,11 +86,9 @@ class Connection: public std::enable_shared_from_this<Connection>
             }
         }
 
-        ~Connection()
-        {
-            LOG_DEBUG("Connection destroyed");
-        }
-
+        /**
+         * Disconnect and cleanly shut down the link
+         */
         void disconnect()
         {
             _connected = false;
@@ -113,6 +111,11 @@ class Connection: public std::enable_shared_from_this<Connection>
             }
 
             LOG_DEBUG("Connection disconnected");
+        }
+
+        ~Connection()
+        {
+            LOG_DEBUG("Connection destroyed");
         }
 
     private:
