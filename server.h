@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unordered_map>
 #include "connection.h"
 
 class Server
@@ -38,6 +39,7 @@ class Server
             }
 
             LOG_NOTICE("Client connected: ", newConnection->socket().remote_endpoint(), " ", newConnection->uuid());
+            _connections[newConnection->uuid()] = newConnection;
 
             // Begin reading on the new connection
             newConnection->beginReading(std::bind(&Server::handleDisconnect, this, newConnection, std::placeholders::_1));
@@ -49,9 +51,11 @@ class Server
         void handleDisconnect(Connection::pointer connection, const boost::system::error_code & error)
         {
             LOG_NOTICE("Client disconnected: ", connection->socket().remote_endpoint(), " ", connection->uuid());
+            _connections.erase(connection->uuid());
         }
 
         boost::asio::ip::tcp::acceptor _acceptor;
         Connection::RPCInvoker _invoker;
         boost::uuids::random_generator _uuidGen;
+        std::unordered_map<boost::uuids::uuid, Connection::pointer, boost::hash<boost::uuids::uuid>> _connections;
 };
