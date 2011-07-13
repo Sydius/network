@@ -19,6 +19,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         typedef invoke::Invoker<Connection::pointer> RPCInvoker;
         typedef boost::asio::io_service IOService;
         typedef std::function<void (boost::system::error_code)> DisconnectHandler;
+        typedef std::unordered_map<boost::uuids::uuid, Connection::pointer, boost::hash<boost::uuids::uuid>> ConnectionMap;
 
         /**
          * Create a new connection object
@@ -28,9 +29,10 @@ class Connection: public std::enable_shared_from_this<Connection>
          * @param uuid      UUID for the connection
          * @return          A shared pointer to a new connection object
          */
-        static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid = boost::uuids::nil_uuid())
+        static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker,
+                const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * connections = NULL)
         {
-            return pointer(new Connection(ioService, invoker, uuid));
+            return pointer(new Connection(ioService, invoker, uuid, connections));
         }
 
         /**
@@ -138,18 +140,32 @@ class Connection: public std::enable_shared_from_this<Connection>
             LOG_DEBUG("Connection disconnected");
         }
 
+        /**
+         * Get a map of the other connections
+         *
+         * @return  Map containing the other connections
+         */
+        ConnectionMap & connections()
+        {
+            if (!_connections) {
+                throw std::logic_error("An attempt to walk connections when there are none was made");
+            }
+            return *_connections;
+        }
+
         ~Connection()
         {
             LOG_DEBUG("Connection destroyed");
         }
 
     private:
-        Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid)
+        Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid, ConnectionMap * connections)
             : _socket(ioService)
             , _invoker(invoker)
             , _connected(false)
             , _shouldCallDisconnectHandler(false)
             , _uuid(uuid)
+            , _connections(connections)
         {
             LOG_DEBUG("Connection created");
         }
@@ -241,6 +257,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         bool _shouldCallDisconnectHandler;
         boost::system::error_code _lastErrorCode;
         boost::uuids::uuid _uuid;
+        ConnectionMap * _connections;
 
         static const char PACKET_END = '\0';
 };

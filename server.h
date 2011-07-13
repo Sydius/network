@@ -25,7 +25,7 @@ class Server
         void startAccept()
         {
             // Prepare a new connection to accept onto
-            Connection::pointer newConnection = Connection::create(_acceptor.io_service(), _invoker, _uuidGen());
+            Connection::pointer newConnection = Connection::create(_acceptor.io_service(), _invoker, _uuidGen(), &_connections);
 
             // Wait for one to accept (will call handleAccept)
             _acceptor.async_accept(newConnection->socket(),
@@ -57,5 +57,5 @@ class Server
         boost::asio::ip::tcp::acceptor _acceptor;
         Connection::RPCInvoker _invoker;
         boost::uuids::random_generator _uuidGen;
-        std::unordered_map<boost::uuids::uuid, Connection::pointer, boost::hash<boost::uuids::uuid>> _connections;
+        Connection::ConnectionMap _connections;
 };
