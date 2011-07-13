@@ -78,7 +78,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         template<typename Function, typename... Args>
         inline void execute(std::string && name, Function function, Args && ... args)
         {
-            LOG_DEBUG("RPC executed: ", name);
+            LOG_DEBUG("Remote RPC executed: ", name);
             if (_connected) {
                 remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
             } else {
@@ -188,6 +188,9 @@ class Connection: public std::enable_shared_from_this<Connection>
             std::istream is(&_incoming);
             std::string line;
             std::getline(is, line, PACKET_END);
+
+            LOG_DEBUG("Local RPC executed: ", _invoker.extractName(line));
+
             _invoker.invoke(line, shared_from_this());
 
             if (_connected) {
