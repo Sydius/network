@@ -103,6 +103,7 @@ class Connection: public std::enable_shared_from_this<Connection>
             }
 
             if (_shouldCallDisconnectHandler) {
+                LOG_DEBUG("Disconnect handler being called");
                 _disconnectHandler(_lastErrorCode);
             }
 
