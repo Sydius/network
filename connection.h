@@ -8,9 +8,9 @@
 #include "invoke.h"
 #include "log.h"
 
-#define RPC(x) #x, x
-#define CLIENT_RPC(x) "C$" RPC(x)
-#define SERVER_RPC(x) "S$" RPC(x)
+#define RPC(x) "rpc_" #x, x
+#define CLIENT_RPC(x) "client_" RPC(x)
+#define SERVER_RPC(x) "server_" RPC(x)
 
 class Connection: public std::enable_shared_from_this<Connection>
 {
