@@ -41,12 +41,12 @@ int main(int argc, char * argv[])
 
         if (connectToServer) {
             Connection::pointer connection{Connection::connect(ioService, rpcInvoker, "localhost", 2000)};
-            connection->execute(SERVER_RPC(pong), 5, "FOO!");
+            connection->execute(SERVER_RPC(sendMessage), "FOO!");
         }
         
         if (!runServer && !connectToServer) {
             Connection::pointer connection{Connection::create(ioService, rpcInvoker)};
-            connection->execute(SERVER_RPC(pong), 3, "FIRST!");
+            connection->execute(SERVER_RPC(sendMessage), "FIRST!");
         }
 
         ioService.run();

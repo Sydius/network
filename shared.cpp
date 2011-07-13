@@ -2,30 +2,22 @@
 
 #include <iostream>
 
-void ping(int x, Connection::pointer connection)
+void printMessage(const std::string & message, Connection::pointer connection)
 {
-    std::cout << "Ping: " << x << std::endl;
-    if (x < 10) {
-        connection->execute(SERVER_RPC(pong), x+1, "HELLO");
-    } else {
-        //connection->disconnect();
-    }
+    std::cout << message << std::endl;
 }
 
-void pong(int x, const std::string & message, Connection::pointer connection)
+void sendMessage(const std::string & message, Connection::pointer connection)
 {
-    std::cout << "Pong: " << x << ":" << message << std::endl;
-    connection->execute(CLIENT_RPC(ping), x+1);
-
-    for (auto & other: connection->connections()) {
-        other.second->execute(CLIENT_RPC(ping), x+1);
+    for (auto & peer: connection->peers()) {
+        peer.second->execute(CLIENT_RPC(printMessage), boost::lexical_cast<std::string>(connection->uuid()) + ": " + message);
     }
 }
 
 Connection::RPCInvoker RPCMethods()
 {
     Connection::RPCInvoker invoker;
-    invoker.registerFunction(CLIENT_RPC(ping));
-    invoker.registerFunction(SERVER_RPC(pong));
+    invoker.registerFunction(CLIENT_RPC(printMessage));
+    invoker.registerFunction(SERVER_RPC(sendMessage));
     return invoker;
 }

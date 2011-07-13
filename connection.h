@@ -145,7 +145,7 @@ class Connection: public std::enable_shared_from_this<Connection>
          *
          * @return  Map containing the other connections
          */
-        ConnectionMap & connections()
+        ConnectionMap & peers()
         {
             if (!_connections) {
                 throw std::logic_error("An attempt to walk connections when there are none was made");
