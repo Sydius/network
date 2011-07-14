@@ -30,10 +30,7 @@ class Connection: public std::enable_shared_from_this<Connection>
          * @return          A shared pointer to a new connection object
          */
         static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker,
-                const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * connections = NULL)
-        {
-            return pointer(new Connection(ioService, invoker, uuid, connections));
-        }
+                const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * connections = NULL);
 
         /**
          * Create a new connection to a remote server
@@ -45,12 +42,7 @@ class Connection: public std::enable_shared_from_this<Connection>
          * @return          A shared pointer to a new connection object
          */
         static pointer connect(Connection::IOService & ioService, const RPCInvoker & invoker,
-                const std::string & hostname, unsigned short port)
-        {
-            pointer ptr = create(ioService, invoker);
-            ptr->connect(hostname, port);
-            return ptr;
-        }
+                const std::string & hostname, unsigned short port);
 
         /**
          * Get the UUID of the connection.
@@ -87,12 +79,7 @@ class Connection: public std::enable_shared_from_this<Connection>
          *
          * @param disconnectHandler Function to call when this connection disconnects
          */
-        void beginReading(const DisconnectHandler & disconnectHandler)
-        {
-            _disconnectHandler = disconnectHandler;
-            _shouldCallDisconnectHandler = true;
-            read();
-        }
+        void beginReading(const DisconnectHandler & disconnectHandler);
 
         /**
          * Execute an RPC on the other end of this connection (or immediately locally if not connected)
@@ -115,43 +102,14 @@ class Connection: public std::enable_shared_from_this<Connection>
         /**
          * Disconnect and cleanly shut down the link
          */
-        void disconnect()
-        {
-            _connected = false;
-            if (!_lastErrorCode) {
-                LOG_DEBUG("Shutting down socket");
-                _socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, _lastErrorCode);
-            }
-
-            if (!_lastErrorCode) {
-                LOG_DEBUG("Closing socket");
-                _socket.close(_lastErrorCode);
-            }
-
-            if (_shouldCallDisconnectHandler) {
-                LOG_DEBUG("Disconnect handler being called");
-                _disconnectHandler(_lastErrorCode);
-            }
-
-            if (_lastErrorCode && _lastErrorCode != boost::asio::error::eof) {
-                throw boost::system::system_error(_lastErrorCode);
-            }
-
-            LOG_DEBUG("Connection disconnected");
-        }
+        void disconnect();
 
         /**
          * Get a map of the other connections
          *
          * @return  Map containing the other connections
          */
-        ConnectionMap & peers()
-        {
-            if (!_connections) {
-                throw std::logic_error("An attempt to walk connections when there are none was made");
-            }
-            return *_connections;
-        }
+        ConnectionMap & peers();
 
         ~Connection()
         {
@@ -159,45 +117,9 @@ class Connection: public std::enable_shared_from_this<Connection>
         }
 
     private:
-        Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid, ConnectionMap * connections)
-            : _socket(ioService)
-            , _invoker(invoker)
-            , _connected(false)
-            , _shouldCallDisconnectHandler(false)
-            , _uuid(uuid)
-            , _connections(connections)
-        {
-            LOG_DEBUG("Connection created");
-        }
+        Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid, ConnectionMap * connections);
 
-        void connect(const std::string & hostname, unsigned short port)
-        {
-            using boost::asio::ip::tcp;
-
-            tcp::resolver resolver(_socket.io_service());
-            tcp::resolver::query query(hostname, "0"); // The port is set later, directly
-            tcp::resolver::iterator end;
-            tcp::endpoint endPoint;
-
-            boost::system::error_code error = boost::asio::error::host_not_found;
-            for (auto endpointsIter = resolver.resolve(query); error && endpointsIter != end; endpointsIter++) {
-                _socket.close();
-                endPoint = *endpointsIter;
-                endPoint.port(port);
-                LOG_INFO("Connection attempt: ", endPoint);
-                _socket.connect(endPoint, error);
-            }
-
-            if (error) {
-                _lastErrorCode = error;
-                disconnect();
-                return;
-            }
-
-            LOG_NOTICE("Connected: ", endPoint);
-
-            read();
-        }
+        void connect(const std::string & hostname, unsigned short port);
 
         template<typename Function, typename... Args>
         void remoteExecute(std::string && name, Function function, Args && ... args)
@@ -210,44 +132,11 @@ class Connection: public std::enable_shared_from_this<Connection>
                     std::placeholders::_2));
         }
 
-        void read()
-        {
-            _connected = true;
-            boost::asio::async_read_until(_socket, _incoming, PACKET_END,
-                std::bind(&Connection::handleRead, shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2));
-        }
+        void read();
 
-        void handleRead(const boost::system::error_code & error, size_t size)
-        {
-            if (error) {
-                _lastErrorCode = error;
-                disconnect();
-                return;
-            }
+        void handleRead(const boost::system::error_code & error, size_t size);
 
-            std::istream is(&_incoming);
-            std::string line;
-            std::getline(is, line, PACKET_END);
-
-            LOG_DEBUG("Local RPC executed: ", _invoker.extractName(line));
-
-            _invoker.invoke(line, shared_from_this());
-
-            if (_connected) {
-                read();
-            }
-        }
-
-        void handleWrite(const boost::system::error_code & error, size_t)
-        {
-            if (error) {
-                _lastErrorCode = error;
-                disconnect();
-                return;
-            }
-        }
+        void handleWrite(const boost::system::error_code & error, size_t);
 
         boost::asio::streambuf _incoming;
         boost::asio::ip::tcp::socket _socket;
