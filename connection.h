@@ -151,9 +151,9 @@ class Connection: public std::enable_shared_from_this<Connection>
 
         void handleWrite(const boost::system::error_code & error, size_t);
 
-        boost::asio::streambuf _incoming;
+        boost::asio::streambuf _incoming; // For incoming data; must stay valid while reading
         boost::asio::ip::tcp::socket _socket;
-        RPCInvoker _invoker;
+        RPCInvoker _invoker; // RPC methods
         bool _connected;
         DisconnectHandler _disconnectHandler;
         bool _shouldCallDisconnectHandler;
