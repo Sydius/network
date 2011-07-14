@@ -86,8 +86,8 @@ void Connection::connect(const std::string & hostname, unsigned short port)
 {
     using boost::asio::ip::tcp;
 
-    tcp::resolver resolver(_socket.io_service());
-    tcp::resolver::query query(hostname, "0"); // The port is set later, directly
+    tcp::resolver resolver{_socket.io_service()};
+    tcp::resolver::query query{hostname, "0"}; // The port is set later, directly
     tcp::resolver::iterator end;
     tcp::endpoint endPoint;
 
