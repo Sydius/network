@@ -1,5 +1,9 @@
 #include "connection.h"
 
+/******************
+ * Factory methods
+ ******************/
+
 Connection::pointer Connection::create(Connection::IOService & ioService, const RPCInvoker & invoker,
         const boost::uuids::uuid & uuid, ConnectionMap * peers)
 {
@@ -13,6 +17,15 @@ Connection::pointer Connection::connect(Connection::IOService & ioService, const
     ptr->connect(hostname, port);
     return ptr;
 }
+
+Connection::pointer Connection::fake(Connection::IOService & ioService, const RPCInvoker & invoker)
+{
+    return pointer(new Connection(ioService, invoker, boost::uuids::nil_uuid(), NULL));
+}
+
+/*****************
+ * Public methods
+ *****************/
 
 void Connection::beginReading(const DisconnectHandler & disconnectHandler)
 {

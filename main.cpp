@@ -45,7 +45,7 @@ int main(int argc, char * argv[])
         }
         
         if (!runServer && !connectToServer) {
-            Connection::pointer connection{Connection::create(ioService, rpcInvoker)};
+            Connection::pointer connection{Connection::fake(ioService, rpcInvoker)};
             connection->execute(SERVER_RPC(sendMessage), "FIRST!");
         }
 

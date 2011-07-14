@@ -34,6 +34,15 @@ class Connection: public std::enable_shared_from_this<Connection>
                 const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * peers = NULL);
 
         /**
+         * Create a fake connection for single-player use
+         *
+         * @param ioService IOService to use (not used if never connected)
+         * @param invoker   RPC invoker to use with this connection
+         * @return          A shared pointer to a new connection object
+         */
+        static pointer fake(Connection::IOService & ioService, const RPCInvoker & invoker);
+
+        /**
          * Create a new connection to a remote server
          *
          * @param ioService IOService to use
