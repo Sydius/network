@@ -14,8 +14,8 @@ class Server
          * @param port      port to listen on
          */
         Server(Connection::IOService & ioService, const Connection::RPCInvoker & invoker, unsigned short port)
-            : _acceptor(ioService, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
-            , _invoker(invoker)
+            : _acceptor{ioService, boost::asio::ip::tcp::endpoint{boost::asio::ip::tcp::v4(), port}}
+            , _invoker{invoker}
         {
             startAccept(); // Start accepting connections immediately
             LOG_NOTICE("Accepting connections at ", _acceptor.local_endpoint());
@@ -35,7 +35,7 @@ class Server
         void handleAccept(Connection::pointer newConnection, const boost::system::error_code & error)
         {
             if (error) {
-                throw boost::system::system_error(error);
+                throw boost::system::system_error{error};
             }
 
             LOG_NOTICE("Client connected: ", newConnection->socket().remote_endpoint(), " ", newConnection->uuid());
