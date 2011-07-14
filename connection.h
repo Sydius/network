@@ -30,17 +30,8 @@ class Connection: public std::enable_shared_from_this<Connection>
          * @param peers     A map of peer connections
          * @return          A shared pointer to a new connection object
          */
-        static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker,
+        static pointer incoming(Connection::IOService & ioService, const RPCInvoker & invoker,
                 const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * peers = NULL);
-
-        /**
-         * Create a fake connection for single-player use
-         *
-         * @param ioService IOService to use (not used if never connected)
-         * @param invoker   RPC invoker to use with this connection
-         * @return          A shared pointer to a new connection object
-         */
-        static pointer fake(Connection::IOService & ioService, const RPCInvoker & invoker);
 
         /**
          * Create a new connection to a remote server
@@ -51,8 +42,17 @@ class Connection: public std::enable_shared_from_this<Connection>
          * @param port      Port to connect to
          * @return          A shared pointer to a new connection object
          */
-        static pointer connect(Connection::IOService & ioService, const RPCInvoker & invoker,
+        static pointer outgoing(Connection::IOService & ioService, const RPCInvoker & invoker,
                 const std::string & hostname, unsigned short port);
+
+        /**
+         * Create a fake connection for single-player use
+         *
+         * @param ioService IOService to use (not used if never connected)
+         * @param invoker   RPC invoker to use with this connection
+         * @return          A shared pointer to a new connection object
+         */
+        static pointer fake(Connection::IOService & ioService, const RPCInvoker & invoker);
 
         /**
          * Get the UUID of the connection.

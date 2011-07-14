@@ -4,16 +4,16 @@
  * Factory methods
  ******************/
 
-Connection::pointer Connection::create(Connection::IOService & ioService, const RPCInvoker & invoker,
+Connection::pointer Connection::incoming(Connection::IOService & ioService, const RPCInvoker & invoker,
         const boost::uuids::uuid & uuid, ConnectionMap * peers)
 {
     return pointer(new Connection(ioService, invoker, uuid, peers));
 }
 
-Connection::pointer Connection::connect(Connection::IOService & ioService, const RPCInvoker & invoker,
+Connection::pointer Connection::outgoing(Connection::IOService & ioService, const RPCInvoker & invoker,
         const std::string & hostname, unsigned short port)
 {
-    pointer ptr = create(ioService, invoker);
+    pointer ptr =  pointer(new Connection(ioService, invoker, boost::uuids::nil_uuid(), NULL));
     ptr->connect(hostname, port);
     return ptr;
 }

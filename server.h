@@ -25,7 +25,7 @@ class Server
         void startAccept()
         {
             // Prepare a new connection to accept onto
-            Connection::pointer newConnection = Connection::create(_acceptor.io_service(), _invoker, _uuidGen(), &_connections);
+            Connection::pointer newConnection = Connection::incoming(_acceptor.io_service(), _invoker, _uuidGen(), &_connections);
 
             // Wait for one to accept (will call handleAccept)
             _acceptor.async_accept(newConnection->socket(),
