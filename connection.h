@@ -27,10 +27,11 @@ class Connection: public std::enable_shared_from_this<Connection>
          * @param ioService IOService to use (not used if never connected)
          * @param invoker   RPC invoker to use with this connection
          * @param uuid      UUID for the connection
+         * @param peers     A map of peer connections
          * @return          A shared pointer to a new connection object
          */
         static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker,
-                const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * connections = NULL);
+                const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * peers = NULL);
 
         /**
          * Create a new connection to a remote server
@@ -117,7 +118,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         }
 
     private:
-        Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid, ConnectionMap * connections);
+        Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid, ConnectionMap * peers);
 
         void connect(const std::string & hostname, unsigned short port);
 
@@ -146,7 +147,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         bool _shouldCallDisconnectHandler;
         boost::system::error_code _lastErrorCode;
         boost::uuids::uuid _uuid;
-        ConnectionMap * _connections;
+        ConnectionMap * _peers; // Peer connections
 
         static const char PACKET_END = '\0';
 };

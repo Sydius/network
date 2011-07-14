@@ -1,9 +1,9 @@
 #include "connection.h"
 
 Connection::pointer Connection::create(Connection::IOService & ioService, const RPCInvoker & invoker,
-        const boost::uuids::uuid & uuid, ConnectionMap * connections)
+        const boost::uuids::uuid & uuid, ConnectionMap * peers)
 {
-    return pointer(new Connection(ioService, invoker, uuid, connections));
+    return pointer(new Connection(ioService, invoker, uuid, peers));
 }
 
 Connection::pointer Connection::connect(Connection::IOService & ioService, const RPCInvoker & invoker,
@@ -48,23 +48,23 @@ void Connection::disconnect()
 
 Connection::ConnectionMap & Connection::peers()
 {
-    if (!_connections) {
+    if (!_peers) {
         throw std::logic_error("An attempt to walk connections when there are none was made");
     }
-    return *_connections;
+    return *_peers;
 }
 
 /******************
 * Private methods
 ******************/
 
-Connection::Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid, ConnectionMap * connections)
+Connection::Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid, ConnectionMap * peers)
     : _socket(ioService)
     , _invoker(invoker)
     , _connected(false)
     , _shouldCallDisconnectHandler(false)
     , _uuid(uuid)
-    , _connections(connections)
+    , _peers(peers)
 {
     LOG_DEBUG("Connection created");
 }
