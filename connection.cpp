@@ -146,6 +146,5 @@ void Connection::handleWrite(const boost::system::error_code & error, size_t)
     if (error) {
         _lastErrorCode = error;
         disconnect();
-        return;
     }
 }
