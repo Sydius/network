@@ -111,6 +111,14 @@ void Connection::connect(const std::string & hostname, unsigned short port)
     read();
 }
 
+void Connection::write()
+{
+    boost::asio::async_write(_socket, _outgoing,
+        std::bind(&Connection::handleWrite, shared_from_this(),
+            std::placeholders::_1,
+            std::placeholders::_2));
+}
+
 void Connection::read()
 {
     _connected = true;
@@ -146,5 +154,12 @@ void Connection::handleWrite(const boost::system::error_code & error, size_t)
     if (error) {
         _lastErrorCode = error;
         disconnect();
+        return;
+    }
+    
+    if (_outgoing.size()) {
+        write();
+    } else {
+        _writing = false;
     }
 }

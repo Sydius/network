@@ -137,13 +137,17 @@ class Connection: public std::enable_shared_from_this<Connection>
         template<typename Function, typename... Args>
         void remoteExecute(std::string && name, Function function, Args && ... args)
         {
-            std::string toSend{_invoker.serialize(std::forward<std::string>(name), function, std::forward<Args>(args)...)};
+            std::ostream outgoingStream{&_outgoing};
+            outgoingStream << _invoker.serialize(std::forward<std::string>(name), function, std::forward<Args>(args)...);
+            outgoingStream << PACKET_END;
 
-            boost::asio::async_write(_socket, boost::asio::buffer(toSend + PACKET_END),
-                std::bind(&Connection::handleWrite, shared_from_this(),
-                    std::placeholders::_1,
-                    std::placeholders::_2));
+            if (!_writing) {
+                _writing = true;
+                write();
+            }
         }
+
+        void write();
 
         void read();
 
@@ -152,6 +156,8 @@ class Connection: public std::enable_shared_from_this<Connection>
         void handleWrite(const boost::system::error_code & error, size_t);
 
         boost::asio::streambuf _incoming; // For incoming data; must stay valid while reading
+        boost::asio::streambuf _outgoing; // For outgoing data; must stay valid while writing
+        bool _writing; // True if it's already sending data
         boost::asio::ip::tcp::socket _socket;
         RPCInvoker _invoker; // RPC methods
         bool _connected;
