@@ -7,20 +7,20 @@
 Connection::pointer Connection::incoming(Connection::IOService & ioService, const RPCInvoker & invoker,
         const boost::uuids::uuid & uuid, ConnectionMap * peers)
 {
-    return pointer{new Connection(ioService, invoker, uuid, peers)};
+    return pointer{new Connection{ioService, invoker, uuid, peers}};
 }
 
 Connection::pointer Connection::outgoing(Connection::IOService & ioService, const RPCInvoker & invoker,
         const std::string & hostname, unsigned short port)
 {
-    pointer ptr{new Connection(ioService, invoker, boost::uuids::nil_uuid(), NULL)};
+    pointer ptr{new Connection{ioService, invoker}};
     ptr->connect(hostname, port);
     return ptr;
 }
 
 Connection::pointer Connection::fake(Connection::IOService & ioService, const RPCInvoker & invoker)
 {
-    return pointer{new Connection(ioService, invoker, boost::uuids::nil_uuid(), NULL)};
+    return pointer{new Connection{ioService, invoker}};
 }
 
 /*****************

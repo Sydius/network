@@ -127,7 +127,10 @@ class Connection: public std::enable_shared_from_this<Connection>
         }
 
     private:
-        Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid, ConnectionMap * peers);
+        Connection(Connection::IOService & ioService,
+                   const RPCInvoker & invoker,
+                   const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(),
+                   ConnectionMap * peers = NULL);
 
         void connect(const std::string & hostname, unsigned short port);
 
