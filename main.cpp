@@ -3,7 +3,9 @@
 #include "server.h"
 #include "connection.h"
 
+#ifdef USE_PANTHEIOS
 const PAN_CHAR_T PANTHEIOS_FE_PROCESS_IDENTITY[] = "game";
+#endif
 
 int main(int argc, char * argv[])
 {

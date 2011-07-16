@@ -1,5 +1,6 @@
 #pragma once
 
+#ifdef USE_PANTHEIOS
 #include <boost/lexical_cast.hpp>
 #include <stlsoft/string/shim_string.hpp>
 
@@ -22,14 +23,27 @@ namespace stlsoft
     }
 }
 
-#define LOG_DEBUG pantheios::log_DEBUG
-#define LOG_INFO pantheios::log_INFORMATIONAL
-#define LOG_NOTICE pantheios::log_NOTICE
-#define LOG_WARNING pantheios::log_WARNING
-#define LOG_ERROR pantheios::log_ERROR
-#define LOG_CRITICAL pantheios::log_CRITICAL
-#define LOG_ALERT pantheios::log_ALERT
-#define LOG_EMERGENCY pantheios::log_EMERGENCY
+#define LOG_DEBUG(...) pantheios::log_DEBUG(__VA_ARGS__)
+#define LOG_INFO(...) pantheios::log_INFORMATIONAL(__VA_ARGS__)
+#define LOG_NOTICE(...) pantheios::log_NOTICE(__VA_ARGS__)
+#define LOG_WARNING(...) pantheios::log_WARNING(__VA_ARGS__)
+#define LOG_ERROR(...) pantheios::log_ERROR(__VA_ARGS__)
+#define LOG_CRITICAL(...) pantheios::log_CRITICAL(__VA_ARGS__)
+#define LOG_ALERT(...) pantheios::log_ALERT(__VA_ARGS__)
+#define LOG_EMERGENCY(...) pantheios::log_EMERGENCY(__VA_ARGS__)
 
 #include <pantheios/pantheios.hpp>
 #include <pantheios/frontends/stock.h>
+
+#else // USE_PANTHEIOS
+
+#define LOG_DEBUG(...)
+#define LOG_INFO(...)
+#define LOG_NOTICE(...)
+#define LOG_WARNING(...)
+#define LOG_ERROR(...)
+#define LOG_CRITICAL(...)
+#define LOG_ALERT(...)
+#define LOG_EMERGENCY(...)
+
+#endif

@@ -1,6 +1,7 @@
 #include "shared.h"
 
 #include <iostream>
+#include <boost/lexical_cast.hpp>
 
 void printMessage(const std::string & message, Connection::pointer connection)
 {
