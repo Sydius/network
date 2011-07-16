@@ -12,8 +12,11 @@
 #define CLIENT_RPC(x) "client_" RPC(x)
 #define SERVER_RPC(x) "server_" RPC(x)
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++" // enable_shared_from_this doesn't need a virtual destructor
 class Connection: public std::enable_shared_from_this<Connection>
 {
+#pragma GCC diagnostic pop
     public:
         typedef std::shared_ptr<Connection> pointer;
         typedef invoke::Invoker<Connection::pointer> RPCInvoker;
@@ -125,6 +128,9 @@ class Connection: public std::enable_shared_from_this<Connection>
         {
             LOG_DEBUG("Connection destroyed");
         }
+        
+        Connection & operator=(const Connection &) = delete;
+        Connection(const Connection &) = delete;
 
     private:
         Connection(Connection::IOService & ioService,

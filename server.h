@@ -16,6 +16,8 @@ class Server
         Server(Connection::IOService & ioService, const Connection::RPCInvoker & invoker, unsigned short port)
             : _acceptor{ioService, boost::asio::ip::tcp::endpoint{boost::asio::ip::tcp::v4(), port}}
             , _invoker{invoker}
+            , _uuidGen{}
+            , _connections{}
         {
             startAccept(); // Start accepting connections immediately
             LOG_NOTICE("Accepting connections at ", _acceptor.local_endpoint());

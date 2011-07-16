@@ -72,10 +72,15 @@ Connection::ConnectionMap & Connection::peers()
 ******************/
 
 Connection::Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid, ConnectionMap * peers)
-    : _socket{ioService}
+    : _incoming{}
+    , _outgoing{}
+    , _writing{false}
+    , _socket{ioService}
     , _invoker{invoker}
     , _connected{false}
+    , _disconnectHandler{}
     , _shouldCallDisconnectHandler{false}
+    , _lastErrorCode{}
     , _uuid(uuid) // Cannot use new initialization syntax because it's an aggregate
     , _peers{peers}
 {

@@ -30,5 +30,5 @@ def build(bld):
             'pantheios.1.fe.all.gcc45.file64bit.mt',
             'pantheios.1.util.gcc45.file64bit.mt',
             ],
-        cxxflags='-O3 --std=c++0x --pedantic -Wall -Wfatal-errors -DUSE_PANTHEIOS'
+        cxxflags='-O3 --std=c++0x --pedantic -Wall -Wfatal-errors -DUSE_PANTHEIOS -Weffc++ -fdiagnostics-show-option'
     )

@@ -2,6 +2,8 @@
 
 #ifdef USE_PANTHEIOS
 #include <boost/lexical_cast.hpp>
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
 #include <stlsoft/string/shim_string.hpp>
 
 namespace stlsoft
@@ -34,6 +36,7 @@ namespace stlsoft
 
 #include <pantheios/pantheios.hpp>
 #include <pantheios/frontends/stock.h>
+#pragma GCC diagnostic pop
 
 #else // USE_PANTHEIOS
 
