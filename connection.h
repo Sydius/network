@@ -138,6 +138,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         void remoteExecute(std::string && name, Function function, Args && ... args)
         {
             std::ostream outgoingStream{&_outgoing};
+            outgoingStream << name << PACKET_END;
             outgoingStream << _invoker.serialize(std::forward<std::string>(name), function, std::forward<Args>(args)...);
             outgoingStream << PACKET_END;
 

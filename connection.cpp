@@ -137,12 +137,13 @@ void Connection::handleRead(const boost::system::error_code & error, size_t size
     }
 
     std::istream is(&_incoming);
-    std::string line;
-    std::getline(is, line, PACKET_END);
+    std::string name, command;
+    std::getline(is, name, PACKET_END);
+    std::getline(is, command, PACKET_END);
 
-    LOG_DEBUG("Local RPC executed: ", _invoker.extractName(line));
+    LOG_DEBUG("Local RPC executed: ", name);
 
-    _invoker.invoke(line, shared_from_this());
+    _invoker.invoke(name, command, shared_from_this());
 
     if (_connected) {
         read();
