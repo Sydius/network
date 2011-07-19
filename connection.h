@@ -97,10 +97,11 @@ class Connection: public std::enable_shared_from_this<Connection>
         template<typename Function, typename... Args>
         inline void execute(std::string && name, Function function, Args && ... args)
         {
-            LOG_DEBUG("Remote RPC executed: ", name);
             if (_connected) {
+                LOG_DEBUG("Remote RPC executed: ", name);
                 remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
             } else {
+                LOG_DEBUG("Fake RPC executed: ", name);
                 function(std::forward<Args>(args)..., shared_from_this());
             }
         }
