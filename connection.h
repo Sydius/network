@@ -48,14 +48,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         static pointer outgoing(Connection::IOService & ioService, const RPCInvoker & invoker,
                 const std::string & hostname, unsigned short port);
 
-        /**
-         * Create a fake connection for single-player use
-         *
-         * @param ioService IOService to use (not used if never connected)
-         * @param invoker   RPC invoker to use with this connection
-         * @return          A shared pointer to a new connection object
-         */
-        static pointer fake(Connection::IOService & ioService, const RPCInvoker & invoker);
+
 
         /**
          * Get the UUID of the connection.
@@ -92,7 +85,7 @@ class Connection: public std::enable_shared_from_this<Connection>
          *
          * @param disconnectHandler Function to call when this connection disconnects
          */
-        void beginReading(const DisconnectHandler & disconnectHandler);
+        virtual void beginReading(const DisconnectHandler & disconnectHandler);
 
         /**
          * Execute an RPC on the other end of this connection (or immediately locally if not connected)
@@ -115,16 +108,16 @@ class Connection: public std::enable_shared_from_this<Connection>
         /**
          * Disconnect and cleanly shut down the link
          */
-        void disconnect();
+        virtual void disconnect();
 
         /**
          * Get a map of the other connections
          *
          * @return  Map containing the other connections
          */
-        ConnectionMap & peers();
+        virtual ConnectionMap & peers();
 
-        ~Connection()
+        virtual ~Connection()
         {
             LOG_DEBUG("Connection destroyed");
         }
@@ -132,12 +125,13 @@ class Connection: public std::enable_shared_from_this<Connection>
         Connection & operator=(const Connection &) = delete;
         Connection(const Connection &) = delete;
 
-    private:
+    protected:
         Connection(Connection::IOService & ioService,
                    const RPCInvoker & invoker,
                    const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(),
                    ConnectionMap * peers = NULL);
 
+    private:
         void connect(const std::string & hostname, unsigned short port);
 
         template<typename Function, typename... Args>
@@ -175,4 +169,35 @@ class Connection: public std::enable_shared_from_this<Connection>
         ConnectionMap * _peers; // Peer connections
 
         static const char PACKET_END = '\0';
+};
+
+class FakeConnection: public Connection
+{
+    public:
+        /**
+         * Create a fake connection for single-player use
+         *
+         * @param ioService IOService to use (not used if never connected)
+         * @param invoker   RPC invoker to use with this connection
+         * @return          A shared pointer to a new connection object
+         */
+        static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker);
+
+        Connection::ConnectionMap & peers()
+        {
+            if (_peers.empty()) {
+                _peers[uuid()] = shared_from_this();
+            }
+            return _peers;
+        }
+
+    private:
+        FakeConnection(Connection::IOService & ioService,
+                       const RPCInvoker & invoker)
+            : Connection{ioService, invoker}
+            , _peers{}
+        {
+        }
+
+        Connection::ConnectionMap _peers;
 };
