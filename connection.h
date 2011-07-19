@@ -19,10 +19,11 @@ class Connection: public std::enable_shared_from_this<Connection>
 #pragma GCC diagnostic pop
     public:
         typedef std::shared_ptr<Connection> Pointer;
+        typedef std::weak_ptr<Connection> WeakPointer;
         typedef invoke::Invoker<Connection::Pointer> RPCInvoker;
         typedef boost::asio::io_service IOService;
         typedef std::function<void (boost::system::error_code)> DisconnectHandler;
-        typedef std::unordered_map<boost::uuids::uuid, Connection::Pointer, boost::hash<boost::uuids::uuid>> ConnectionMap;
+        typedef std::unordered_map<boost::uuids::uuid, Connection::WeakPointer, boost::hash<boost::uuids::uuid>> ConnectionMap;
 
         /**
          * Create a new connection object

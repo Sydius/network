@@ -11,7 +11,7 @@ void printMessage(const std::string & message, Connection::Pointer connection)
 void sendMessage(const std::string & message, Connection::Pointer connection)
 {
     for (auto & peer: connection->peers()) {
-        peer.second->execute(CLIENT_RPC(printMessage), boost::lexical_cast<std::string>(connection->uuid()) + ": " + message);
+        Connection::Pointer{peer.second}->execute(CLIENT_RPC(printMessage), boost::lexical_cast<std::string>(connection->uuid()) + ": " + message);
     }
 }
 
