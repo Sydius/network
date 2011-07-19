@@ -27,14 +27,14 @@ class Server
         void startAccept()
         {
             // Prepare a new connection to accept onto
-            Connection::pointer newConnection = Connection::incoming(_acceptor.io_service(), _invoker, _uuidGen(), &_connections);
+            Connection::Pointer newConnection = Connection::incoming(_acceptor.io_service(), _invoker, _uuidGen(), &_connections);
 
             // Wait for one to accept (will call handleAccept)
             _acceptor.async_accept(newConnection->socket(),
                 std::bind(&Server::handleAccept, this, newConnection, std::placeholders::_1));
         }
 
-        void handleAccept(Connection::pointer newConnection, const boost::system::error_code & error)
+        void handleAccept(Connection::Pointer newConnection, const boost::system::error_code & error)
         {
             if (error) {
                 throw boost::system::system_error{error};
@@ -50,7 +50,7 @@ class Server
             startAccept();
         }
 
-        void handleDisconnect(Connection::pointer connection, const boost::system::error_code & error)
+        void handleDisconnect(Connection::Pointer connection, const boost::system::error_code & error)
         {
             LOG_NOTICE("Client disconnected: ", connection->socket().remote_endpoint(), " ", connection->uuid());
             _connections.erase(connection->uuid());

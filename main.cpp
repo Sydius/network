@@ -42,12 +42,12 @@ int main(int argc, char * argv[])
         }
 
         if (connectToServer) {
-            Connection::pointer connection{Connection::outgoing(ioService, rpcInvoker, "localhost", 2000)};
+            Connection::Pointer connection{Connection::outgoing(ioService, rpcInvoker, "localhost", 2000)};
             connection->execute(SERVER_RPC(sendMessage), "FOO!");
         }
         
         if (!runServer && !connectToServer) {
-            Connection::pointer connection{FakeConnection::create(ioService, rpcInvoker)};
+            Connection::Pointer connection{FakeConnection::create(ioService, rpcInvoker)};
             connection->execute(SERVER_RPC(sendMessage), "FIRST!");
         }
 

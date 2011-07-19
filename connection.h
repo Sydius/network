@@ -18,11 +18,11 @@ class Connection: public std::enable_shared_from_this<Connection>
 {
 #pragma GCC diagnostic pop
     public:
-        typedef std::shared_ptr<Connection> pointer;
-        typedef invoke::Invoker<Connection::pointer> RPCInvoker;
+        typedef std::shared_ptr<Connection> Pointer;
+        typedef invoke::Invoker<Connection::Pointer> RPCInvoker;
         typedef boost::asio::io_service IOService;
         typedef std::function<void (boost::system::error_code)> DisconnectHandler;
-        typedef std::unordered_map<boost::uuids::uuid, Connection::pointer, boost::hash<boost::uuids::uuid>> ConnectionMap;
+        typedef std::unordered_map<boost::uuids::uuid, Connection::Pointer, boost::hash<boost::uuids::uuid>> ConnectionMap;
 
         /**
          * Create a new connection object
@@ -31,9 +31,9 @@ class Connection: public std::enable_shared_from_this<Connection>
          * @param invoker   RPC invoker to use with this connection
          * @param uuid      UUID for the connection
          * @param peers     A map of peer connections
-         * @return          A shared pointer to a new connection object
+         * @return          A shared Pointer to a new connection object
          */
-        static pointer incoming(Connection::IOService & ioService, const RPCInvoker & invoker,
+        static Pointer incoming(Connection::IOService & ioService, const RPCInvoker & invoker,
                 const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * peers = NULL);
 
         /**
@@ -43,9 +43,9 @@ class Connection: public std::enable_shared_from_this<Connection>
          * @param invoker   RPC invoker to use with this connection
          * @param hostname  Host name to connect to
          * @param port      Port to connect to
-         * @return          A shared pointer to a new connection object
+         * @return          A shared Pointer to a new connection object
          */
-        static pointer outgoing(Connection::IOService & ioService, const RPCInvoker & invoker,
+        static Pointer outgoing(Connection::IOService & ioService, const RPCInvoker & invoker,
                 const std::string & hostname, unsigned short port);
 
 
@@ -180,11 +180,11 @@ class FakeConnection: public Connection
          *
          * @param ioService IOService to use (not used if never connected)
          * @param invoker   RPC invoker to use with this connection
-         * @return          A shared pointer to a new connection object
+         * @return          A shared Pointer to a new connection object
          */
-        static pointer create(Connection::IOService & ioService, const RPCInvoker & invoker);
+        static Pointer create(IOService & ioService, const RPCInvoker & invoker);
 
-        Connection::ConnectionMap & peers()
+        ConnectionMap & peers()
         {
             if (_peers.empty()) {
                 _peers[uuid()] = shared_from_this();
@@ -193,12 +193,12 @@ class FakeConnection: public Connection
         }
 
     private:
-        FakeConnection(Connection::IOService & ioService,
+        FakeConnection(IOService & ioService,
                        const RPCInvoker & invoker)
             : Connection{ioService, invoker}
             , _peers{}
         {
         }
 
-        Connection::ConnectionMap _peers;
+        ConnectionMap _peers;
 };

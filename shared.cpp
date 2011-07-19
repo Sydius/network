@@ -3,12 +3,12 @@
 #include <iostream>
 #include <boost/lexical_cast.hpp>
 
-void printMessage(const std::string & message, Connection::pointer connection)
+void printMessage(const std::string & message, Connection::Pointer connection)
 {
     std::cout << message << std::endl;
 }
 
-void sendMessage(const std::string & message, Connection::pointer connection)
+void sendMessage(const std::string & message, Connection::Pointer connection)
 {
     for (auto & peer: connection->peers()) {
         peer.second->execute(CLIENT_RPC(printMessage), boost::lexical_cast<std::string>(connection->uuid()) + ": " + message);
