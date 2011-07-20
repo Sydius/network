@@ -14,13 +14,7 @@ class FakeConnection: public Connection
          */
         static Pointer create(IOService & ioService, const RPCInvoker & invoker);
 
-        ConnectionMap & peers()
-        {
-            if (_peers.empty()) {
-                _peers[uuid()] = shared_from_this();
-            }
-            return _peers;
-        }
+        ConnectionMap & peers();
 
     private:
         FakeConnection(IOService & ioService,

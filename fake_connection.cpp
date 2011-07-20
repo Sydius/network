@@ -8,3 +8,16 @@ Connection::Pointer FakeConnection::create(Connection::IOService & ioService, co
 {
     return Pointer{new FakeConnection{ioService, invoker}};
 }
+
+
+/*****************
+ * Public methods
+ *****************/
+
+Connection::ConnectionMap & FakeConnection::peers()
+{
+    if (_peers.empty()) {
+        _peers[uuid()] = shared_from_this();
+    }
+    return _peers;
+}
