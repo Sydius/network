@@ -30,7 +30,6 @@ Connection::Pointer FakeConnection::create(Connection::IOService & ioService, co
 void Connection::beginReading(const DisconnectHandler & disconnectHandler)
 {
     _disconnectHandler = disconnectHandler;
-    _shouldCallDisconnectHandler = true;
     read();
 }
 
@@ -47,9 +46,10 @@ void Connection::disconnect()
         _socket.close(_lastErrorCode);
     }
 
-    if (_shouldCallDisconnectHandler) {
+    if (_disconnectHandler) {
         LOG_DEBUG("Disconnect handler being called");
         _disconnectHandler(_lastErrorCode);
+        _disconnectHandler = DisconnectHandler{};
     }
 
     if (_lastErrorCode && _lastErrorCode != boost::asio::error::eof) {
@@ -79,7 +79,6 @@ Connection::Connection(Connection::IOService & ioService, const RPCInvoker & inv
     , _invoker{invoker}
     , _connected{false}
     , _disconnectHandler{}
-    , _shouldCallDisconnectHandler{false}
     , _lastErrorCode{}
     , _uuid(uuid) // Cannot use new initialization syntax because it's an aggregate
     , _peers{peers}

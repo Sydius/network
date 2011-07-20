@@ -165,7 +165,6 @@ class Connection: public std::enable_shared_from_this<Connection>
         RPCInvoker _invoker; // RPC methods
         bool _connected;
         DisconnectHandler _disconnectHandler;
-        bool _shouldCallDisconnectHandler;
         boost::system::error_code _lastErrorCode;
         boost::uuids::uuid _uuid;
         ConnectionMap * _peers; // Peer connections
