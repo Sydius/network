@@ -7,13 +7,13 @@
 Connection::Pointer Connection::incoming(Connection::IOService & ioService, const RPCInvoker & invoker,
         const boost::uuids::uuid & uuid, ConnectionMap * peers)
 {
-    return Pointer{new Connection{ioService, invoker, uuid, peers}};
+    return Pointer{new Connection{Incoming, ioService, invoker, uuid, peers}};
 }
 
 Connection::Pointer Connection::outgoing(Connection::IOService & ioService, const RPCInvoker & invoker,
         const std::string & hostname, unsigned short port)
 {
-    Pointer ptr{new Connection{ioService, invoker}};
+    Pointer ptr{new Connection{Outgoing, ioService, invoker}};
     ptr->connect(hostname, port);
     return ptr;
 }
@@ -67,7 +67,11 @@ Connection::ConnectionMap & Connection::peers()
 * Private methods
 ******************/
 
-Connection::Connection(Connection::IOService & ioService, const RPCInvoker & invoker, const boost::uuids::uuid & uuid, ConnectionMap * peers)
+Connection::Connection(Type type,
+                      Connection::IOService & ioService,
+                      const RPCInvoker & invoker,
+                      const boost::uuids::uuid & uuid,
+                      ConnectionMap * peers)
     : _incoming{}
     , _outgoing{}
     , _writing{false}
@@ -78,6 +82,7 @@ Connection::Connection(Connection::IOService & ioService, const RPCInvoker & inv
     , _lastErrorCode{}
     , _uuid(uuid) // Cannot use new initialization syntax because it's an aggregate
     , _peers{peers}
+    , _type{type}
 {
     LOG_DEBUG("Connection created");
 }

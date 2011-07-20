@@ -24,6 +24,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         typedef boost::asio::io_service IOService;
         typedef std::function<void (boost::system::error_code)> DisconnectHandler;
         typedef std::unordered_map<boost::uuids::uuid, Connection::WeakPointer, boost::hash<boost::uuids::uuid>> ConnectionMap;
+        typedef enum { Unknown, Outgoing, Incoming, Fake } Type;
 
         /**
          * Create a new connection object
@@ -96,12 +97,18 @@ class Connection: public std::enable_shared_from_this<Connection>
         template<typename Function, typename... Args>
         inline void execute(std::string && name, Function function, Args && ... args)
         {
-            if (_connected) {
-                LOG_DEBUG("Remote RPC executed: ", name);
-                remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
-            } else {
-                LOG_DEBUG("Fake RPC executed: ", name);
-                function(std::forward<Args>(args)..., shared_from_this());
+            switch (_type) {
+                case Incoming:
+                case Outgoing:
+                    LOG_DEBUG("Remote RPC executed: ", name);
+                    remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
+                    break;
+                case Fake:
+                    LOG_DEBUG("Fake RPC executed: ", name);
+                    function(std::forward<Args>(args)..., shared_from_this());
+                    break;
+                default:
+                    throw std::logic_error("Execute called on unknown link type");
             }
         }
 
@@ -126,7 +133,8 @@ class Connection: public std::enable_shared_from_this<Connection>
         Connection(const Connection &) = delete;
 
     protected:
-        Connection(Connection::IOService & ioService,
+        Connection(Type type,
+                   Connection::IOService & ioService,
                    const RPCInvoker & invoker,
                    const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(),
                    ConnectionMap * peers = NULL);
@@ -166,6 +174,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         boost::system::error_code _lastErrorCode;
         boost::uuids::uuid _uuid;
         ConnectionMap * _peers; // Peer connections
+        Type _type;
 
         static const char PACKET_END = '\0';
 };
