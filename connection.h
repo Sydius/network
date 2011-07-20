@@ -49,8 +49,6 @@ class Connection: public std::enable_shared_from_this<Connection>
         static Pointer outgoing(Connection::IOService & ioService, const RPCInvoker & invoker,
                 const std::string & hostname, unsigned short port);
 
-
-
         /**
          * Get the UUID of the connection.
          *
@@ -170,35 +168,4 @@ class Connection: public std::enable_shared_from_this<Connection>
         ConnectionMap * _peers; // Peer connections
 
         static const char PACKET_END = '\0';
-};
-
-class FakeConnection: public Connection
-{
-    public:
-        /**
-         * Create a fake connection for single-player use
-         *
-         * @param ioService IOService to use (not used if never connected)
-         * @param invoker   RPC invoker to use with this connection
-         * @return          A shared Pointer to a new connection object
-         */
-        static Pointer create(IOService & ioService, const RPCInvoker & invoker);
-
-        ConnectionMap & peers()
-        {
-            if (_peers.empty()) {
-                _peers[uuid()] = shared_from_this();
-            }
-            return _peers;
-        }
-
-    private:
-        FakeConnection(IOService & ioService,
-                       const RPCInvoker & invoker)
-            : Connection{ioService, invoker}
-            , _peers{}
-        {
-        }
-
-        ConnectionMap _peers;
 };

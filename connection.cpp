@@ -18,10 +18,6 @@ Connection::Pointer Connection::outgoing(Connection::IOService & ioService, cons
     return ptr;
 }
 
-Connection::Pointer FakeConnection::create(Connection::IOService & ioService, const RPCInvoker & invoker)
-{
-    return Pointer{new FakeConnection{ioService, invoker}};
-}
 
 /*****************
  * Public methods

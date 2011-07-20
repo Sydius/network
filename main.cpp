@@ -2,6 +2,7 @@
 #include "shared.h"
 #include "server.h"
 #include "connection.h"
+#include "fake_connection.h"
 
 #ifdef USE_PANTHEIOS
 const PAN_CHAR_T PANTHEIOS_FE_PROCESS_IDENTITY[] = "game";
