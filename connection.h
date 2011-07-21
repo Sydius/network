@@ -114,8 +114,6 @@ class Connection: public std::enable_shared_from_this<Connection>
         void remoteExecute(const std::string & name, const std::string & params) {}
 
     private:
-        void connect(const std::string & hostname, unsigned short port);
-
         RPCInvoker _invoker; // RPC methods
         boost::uuids::uuid _uuid;
         Type _type;
