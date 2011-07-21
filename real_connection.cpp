@@ -10,15 +10,6 @@ Connection::Pointer RealConnection::incoming(const RPCInvoker & invoker, IOServi
     return Pointer{new RealConnection{Incoming, invoker, ioService, uuid, peers}};
 }
 
-Connection::Pointer RealConnection::outgoing(const RPCInvoker & invoker, IOService & ioService,
-        const std::string & hostname, unsigned short port)
-{
-    RealConnection * real{new RealConnection{Outgoing, invoker, ioService}};
-    Connection::Pointer ptr{real};
-    real->connect(hostname, port);
-    return ptr;
-}
-
 
 /*****************
  * Public methods
@@ -99,35 +90,6 @@ void RealConnection::read()
 /******************
 * Private methods
 ******************/
-
-void RealConnection::connect(const std::string & hostname, unsigned short port)
-{
-    using boost::asio::ip::tcp;
-
-    tcp::resolver resolver{_socket.io_service()};
-    tcp::resolver::query query{hostname, "0"}; // The port is set later, directly
-    tcp::resolver::iterator end;
-    tcp::endpoint endPoint;
-
-    boost::system::error_code error{boost::asio::error::host_not_found};
-    for (auto endpointsIter = resolver.resolve(query); error && endpointsIter != end; endpointsIter++) {
-        _socket.close();
-        endPoint = *endpointsIter;
-        endPoint.port(port);
-        LOG_INFO("Connection attempt: ", endPoint);
-        _socket.connect(endPoint, error);
-    }
-
-    if (error) {
-        _lastErrorCode = error;
-        disconnect();
-        return;
-    }
-
-    LOG_NOTICE("Connected: ", endPoint);
-
-    read();
-}
 
 void RealConnection::write()
 {

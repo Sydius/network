@@ -3,6 +3,7 @@
 #include "server.h"
 #include "connection.h"
 #include "fake_connection.h"
+#include "outgoing_connection.h"
 
 #ifdef USE_PANTHEIOS
 const PAN_CHAR_T PANTHEIOS_FE_PROCESS_IDENTITY[] = "game";
@@ -44,7 +45,7 @@ int main(int argc, char * argv[])
         }
 
         if (connectToServer) {
-            connection = RealConnection::outgoing(rpcInvoker, ioService, "localhost", 2000);
+            connection = OutgoingConnection::create(rpcInvoker, ioService, "localhost", 2000);
             connection->execute(SERVER_RPC(sendMessage), "FOO!");
         }
         

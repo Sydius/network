@@ -23,18 +23,6 @@ class RealConnection: public Connection
                 const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * peers = NULL);
 
         /**
-         * Create a new connection to a remote server
-         *
-         * @param invoker   RPC invoker to use with this connection
-         * @param ioService IOService to use
-         * @param hostname  Host name to connect to
-         * @param port      Port to connect to
-         * @return          A shared Pointer to a new connection object
-         */
-        static Pointer outgoing(const RPCInvoker & invoker, IOService & ioService,
-                const std::string & hostname, unsigned short port);
-
-        /**
          * Get the socket used by this connection.
          *
          * @return  Socket used by this connection
@@ -69,6 +57,11 @@ class RealConnection: public Connection
 
         void read();
 
+        void lastErrorCode(boost::system::error_code error)
+        {
+            _lastErrorCode = error;
+        }
+
     private:
         void remoteExecute(const std::string & name, const std::string & params)
         {
@@ -87,8 +80,6 @@ class RealConnection: public Connection
         {
             return std::static_pointer_cast<RealConnection>(shared_from_this());
         }
-
-        void connect(const std::string & hostname, unsigned short port);
 
         void write();
 

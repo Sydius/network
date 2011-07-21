@@ -21,6 +21,7 @@ def build(bld):
             'shared.cpp',
             'fake_connection.cpp',
             'real_connection.cpp',
+            'outgoing_connection.cpp',
             ],
         includes=['../call-with-tuple', '../serialize-tuple', '../dynamic-invocation',
             bld.env.PANTHEIOS + '/include',
