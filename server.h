@@ -27,7 +27,7 @@ class Server
         void startAccept()
         {
             // Prepare a new connection to accept onto
-            Connection::Pointer newConnection = RealConnection::incoming(_acceptor.io_service(), _invoker, _uuidGen(), &_connections);
+            Connection::Pointer newConnection = RealConnection::incoming(_invoker, _acceptor.io_service(), _uuidGen(), &_connections);
 
             // Wait for one to accept (will call handleAccept)
             _acceptor.async_accept(std::static_pointer_cast<RealConnection>(newConnection)->socket(),

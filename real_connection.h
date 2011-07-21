@@ -1,8 +1,8 @@
 #pragma once
 
-#include "connection.h"
-
 #include <boost/asio.hpp>
+
+#include "connection.h"
 
 class RealConnection: public Connection
 {
@@ -13,27 +13,32 @@ class RealConnection: public Connection
         /**
          * Create a new connection object
          *
-         * @param ioService IOService to use (not used if never connected)
          * @param invoker   RPC invoker to use with this connection
+         * @param ioService IOService to use (not used if never connected)
          * @param uuid      UUID for the connection
          * @param peers     A map of peer connections
          * @return          A shared Pointer to a new connection object
          */
-        static Pointer incoming(IOService & ioService, const RPCInvoker & invoker,
+        static Pointer incoming(const RPCInvoker & invoker, IOService & ioService,
                 const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * peers = NULL);
 
         /**
          * Create a new connection to a remote server
          *
-         * @param ioService IOService to use
          * @param invoker   RPC invoker to use with this connection
+         * @param ioService IOService to use
          * @param hostname  Host name to connect to
          * @param port      Port to connect to
          * @return          A shared Pointer to a new connection object
          */
-        static Pointer outgoing(IOService & ioService, const RPCInvoker & invoker,
+        static Pointer outgoing(const RPCInvoker & invoker, IOService & ioService,
                 const std::string & hostname, unsigned short port);
 
+        /**
+         * Get the socket used by this connection.
+         *
+         * @return  Socket used by this connection
+         */
         virtual boost::asio::ip::tcp::socket & socket()
         {
             return _socket;
@@ -57,10 +62,12 @@ class RealConnection: public Connection
 
     protected:
         RealConnection(Type type,
-                       IOService & ioService,
                        const RPCInvoker & invoker,
+                       IOService & ioService,
                        const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(),
                        ConnectionMap * peers = NULL);
+
+        void read();
 
     private:
         void remoteExecute(const std::string & name, const std::string & params)
@@ -84,8 +91,6 @@ class RealConnection: public Connection
         void connect(const std::string & hostname, unsigned short port);
 
         void write();
-
-        void read();
 
         void handleRead(const boost::system::error_code & error, size_t size);
 

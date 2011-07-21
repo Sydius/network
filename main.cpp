@@ -44,7 +44,7 @@ int main(int argc, char * argv[])
         }
 
         if (connectToServer) {
-            connection = RealConnection::outgoing(ioService, rpcInvoker, "localhost", 2000);
+            connection = RealConnection::outgoing(rpcInvoker, ioService, "localhost", 2000);
             connection->execute(SERVER_RPC(sendMessage), "FOO!");
         }
         

@@ -4,16 +4,16 @@
  * Factory methods
  ******************/
 
-Connection::Pointer RealConnection::incoming(IOService & ioService, const RPCInvoker & invoker,
+Connection::Pointer RealConnection::incoming(const RPCInvoker & invoker, IOService & ioService,
         const boost::uuids::uuid & uuid, ConnectionMap * peers)
 {
-    return Pointer{new RealConnection{Incoming, ioService, invoker, uuid, peers}};
+    return Pointer{new RealConnection{Incoming, invoker, ioService, uuid, peers}};
 }
 
-Connection::Pointer RealConnection::outgoing(IOService & ioService, const RPCInvoker & invoker,
+Connection::Pointer RealConnection::outgoing(const RPCInvoker & invoker, IOService & ioService,
         const std::string & hostname, unsigned short port)
 {
-    RealConnection * real{new RealConnection{Outgoing, ioService, invoker}};
+    RealConnection * real{new RealConnection{Outgoing, invoker, ioService}};
     Connection::Pointer ptr{real};
     real->connect(hostname, port);
     return ptr;
@@ -64,13 +64,14 @@ Connection::ConnectionMap & RealConnection::peers()
     return *_peers;
 }
 
-/******************
-* Private methods
-******************/
+
+/********************
+ * Protected methods
+ ********************/
 
 RealConnection::RealConnection(Type type,
-                               IOService & ioService,
                                const RPCInvoker & invoker,
+                               IOService & ioService,
                                const boost::uuids::uuid & uuid,
                                ConnectionMap * peers)
     : Connection{type, invoker, uuid}
@@ -84,6 +85,20 @@ RealConnection::RealConnection(Type type,
     , _peers{peers}
 {
 }
+
+void RealConnection::read()
+{
+    _connected = true;
+    boost::asio::async_read_until(_socket, _incoming, PACKET_END,
+        std::bind(&RealConnection::handleRead, getDerivedPointer(),
+            std::placeholders::_1,
+            std::placeholders::_2));
+}
+
+
+/******************
+* Private methods
+******************/
 
 void RealConnection::connect(const std::string & hostname, unsigned short port)
 {
@@ -118,15 +133,6 @@ void RealConnection::write()
 {
     boost::asio::async_write(_socket, _outgoing,
         std::bind(&RealConnection::handleWrite, getDerivedPointer(),
-            std::placeholders::_1,
-            std::placeholders::_2));
-}
-
-void RealConnection::read()
-{
-    _connected = true;
-    boost::asio::async_read_until(_socket, _incoming, PACKET_END,
-        std::bind(&RealConnection::handleRead, getDerivedPointer(),
             std::placeholders::_1,
             std::placeholders::_2));
 }
