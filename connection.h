@@ -27,8 +27,10 @@ class Connection: public std::enable_shared_from_this<Connection>
         typedef std::shared_ptr<Connection> Pointer;
         typedef std::weak_ptr<Connection> WeakPointer;
 
+        // Stores RPC methods
         typedef invoke::Invoker<Connection::Pointer> RPCInvoker;
         
+        // Maps connections to UUID
         typedef std::unordered_map<boost::uuids::uuid, Connection::WeakPointer, boost::hash<boost::uuids::uuid>> ConnectionMap;
 
         /**
@@ -93,6 +95,7 @@ class Connection: public std::enable_shared_from_this<Connection>
             LOG_DEBUG("Connection destroyed");
         }
         
+        // Can't copy this class
         Connection & operator=(const Connection &) = delete;
         Connection(const Connection &) = delete;
 
@@ -100,6 +103,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         // Type of connection
         typedef enum { Unknown, Outgoing, Incoming, Fake } Type;
 
+        // Protected to force the use of the factory methods in children classes
         Connection(Type type,
                    const RPCInvoker & invoker,
                    const boost::uuids::uuid & uuid = boost::uuids::nil_uuid())
@@ -110,9 +114,11 @@ class Connection: public std::enable_shared_from_this<Connection>
             LOG_DEBUG("Connection created");
         }
 
+        // For child class access to the invoker
         RPCInvoker & invoker() { return _invoker; }
 
-        void remoteExecute(const std::string & name, const std::string & params) {}
+        // This needs to exist here for the template method execute to be able to pass on calls
+        virtual void remoteExecute(const std::string & name, const std::string & params) {}
 
     private:
         RPCInvoker _invoker; // RPC methods
