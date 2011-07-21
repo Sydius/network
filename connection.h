@@ -27,30 +27,6 @@ class Connection: public std::enable_shared_from_this<Connection>
         typedef enum { Unknown, Outgoing, Incoming, Fake } Type;
 
         /**
-         * Create a new connection object
-         *
-         * @param ioService IOService to use (not used if never connected)
-         * @param invoker   RPC invoker to use with this connection
-         * @param uuid      UUID for the connection
-         * @param peers     A map of peer connections
-         * @return          A shared Pointer to a new connection object
-         */
-        static Pointer incoming(Connection::IOService & ioService, const RPCInvoker & invoker,
-                const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * peers = NULL);
-
-        /**
-         * Create a new connection to a remote server
-         *
-         * @param ioService IOService to use
-         * @param invoker   RPC invoker to use with this connection
-         * @param hostname  Host name to connect to
-         * @param port      Port to connect to
-         * @return          A shared Pointer to a new connection object
-         */
-        static Pointer outgoing(Connection::IOService & ioService, const RPCInvoker & invoker,
-                const std::string & hostname, unsigned short port);
-
-        /**
          * Get the UUID of the connection.
          *
          * @return  UUID of the connection
@@ -71,21 +47,11 @@ class Connection: public std::enable_shared_from_this<Connection>
         }
 
         /**
-         * Retrieve the socket for the connection
-         *
-         * @return  Socket that belongs to this connection
-         */
-        boost::asio::ip::tcp::socket & socket()
-        {
-            return _socket;
-        }
-
-        /**
          * Begin reading on this connection
          *
          * @param disconnectHandler Function to call when this connection disconnects
          */
-        virtual void beginReading(const DisconnectHandler & disconnectHandler);
+        virtual void beginReading(const DisconnectHandler & disconnectHandler) {}
 
         /**
          * Execute an RPC on the other end of this connection (or immediately locally if not connected)
@@ -101,7 +67,7 @@ class Connection: public std::enable_shared_from_this<Connection>
                 case Incoming:
                 case Outgoing:
                     LOG_DEBUG("Remote RPC executed: ", name);
-                    remoteExecute(std::forward<std::string>(name), std::forward<Function>(function), std::forward<Args>(args)...);
+                    remoteExecute(std::forward<std::string>(name), _invoker.serialize(std::forward<std::string>(name), function, std::forward<Args>(args)...));
                     break;
                 case Fake:
                     LOG_DEBUG("Fake RPC executed: ", name);
@@ -115,14 +81,14 @@ class Connection: public std::enable_shared_from_this<Connection>
         /**
          * Disconnect and cleanly shut down the link
          */
-        virtual void disconnect();
+        virtual void disconnect() {}
 
         /**
          * Get a map of the other connections
          *
          * @return  Map containing the other connections
          */
-        virtual ConnectionMap & peers();
+        virtual ConnectionMap & peers() = 0;
 
         virtual ~Connection()
         {
@@ -134,47 +100,23 @@ class Connection: public std::enable_shared_from_this<Connection>
 
     protected:
         Connection(Type type,
-                   Connection::IOService & ioService,
                    const RPCInvoker & invoker,
-                   const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(),
-                   ConnectionMap * peers = NULL);
+                   const boost::uuids::uuid & uuid = boost::uuids::nil_uuid())
+            : _invoker{invoker}
+            , _uuid(uuid)
+            , _type{type}
+        {
+            LOG_DEBUG("Connection created");
+        }
+
+        RPCInvoker & invoker() { return _invoker; }
+
+        void remoteExecute(const std::string & name, const std::string & params) {}
 
     private:
         void connect(const std::string & hostname, unsigned short port);
 
-        template<typename Function, typename... Args>
-        void remoteExecute(std::string && name, Function function, Args && ... args)
-        {
-            std::ostream outgoingStream{&_outgoing};
-            outgoingStream << name << PACKET_END;
-            outgoingStream << _invoker.serialize(std::forward<std::string>(name), function, std::forward<Args>(args)...);
-            outgoingStream << PACKET_END;
-
-            if (!_writing) {
-                _writing = true;
-                write();
-            }
-        }
-
-        void write();
-
-        void read();
-
-        void handleRead(const boost::system::error_code & error, size_t size);
-
-        void handleWrite(const boost::system::error_code & error, size_t);
-
-        boost::asio::streambuf _incoming; // For incoming data; must stay valid while reading
-        boost::asio::streambuf _outgoing; // For outgoing data; must stay valid while writing
-        bool _writing; // True if it's already sending data
-        boost::asio::ip::tcp::socket _socket;
         RPCInvoker _invoker; // RPC methods
-        bool _connected;
-        DisconnectHandler _disconnectHandler;
-        boost::system::error_code _lastErrorCode;
         boost::uuids::uuid _uuid;
-        ConnectionMap * _peers; // Peer connections
         Type _type;
-
-        static const char PACKET_END = '\0';
 };

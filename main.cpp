@@ -37,18 +37,19 @@ int main(int argc, char * argv[])
         Connection::IOService ioService;
         Connection::RPCInvoker rpcInvoker{RPCMethods()};
         std::shared_ptr<Server> server;
+        Connection::Pointer connection;
 
         if (runServer) {
             server = std::shared_ptr<Server>{new Server(ioService, rpcInvoker, 2000)};
         }
 
         if (connectToServer) {
-            Connection::Pointer connection{Connection::outgoing(ioService, rpcInvoker, "localhost", 2000)};
+            connection = RealConnection::outgoing(ioService, rpcInvoker, "localhost", 2000);
             connection->execute(SERVER_RPC(sendMessage), "FOO!");
         }
         
         if (!runServer && !connectToServer) {
-            Connection::Pointer connection{FakeConnection::create(ioService, rpcInvoker)};
+            connection = FakeConnection::create(ioService, rpcInvoker);
             connection->execute(SERVER_RPC(sendMessage), "FIRST!");
         }
 

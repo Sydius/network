@@ -19,7 +19,7 @@ class FakeConnection: public Connection
     private:
         FakeConnection(IOService & ioService,
                        const RPCInvoker & invoker)
-            : Connection{Fake, ioService, invoker}
+            : Connection{Fake, invoker}
             , _peers{}
         {
         }

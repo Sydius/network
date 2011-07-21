@@ -1,20 +1,21 @@
-#include "connection.h"
+#include "real_connection.h"
 
 /******************
  * Factory methods
  ******************/
 
-Connection::Pointer Connection::incoming(Connection::IOService & ioService, const RPCInvoker & invoker,
+Connection::Pointer RealConnection::incoming(IOService & ioService, const RPCInvoker & invoker,
         const boost::uuids::uuid & uuid, ConnectionMap * peers)
 {
-    return Pointer{new Connection{Incoming, ioService, invoker, uuid, peers}};
+    return Pointer{new RealConnection{Incoming, ioService, invoker, uuid, peers}};
 }
 
-Connection::Pointer Connection::outgoing(Connection::IOService & ioService, const RPCInvoker & invoker,
+Connection::Pointer RealConnection::outgoing(IOService & ioService, const RPCInvoker & invoker,
         const std::string & hostname, unsigned short port)
 {
-    Pointer ptr{new Connection{Outgoing, ioService, invoker}};
-    ptr->connect(hostname, port);
+    RealConnection * real{new RealConnection{Outgoing, ioService, invoker}};
+    Connection::Pointer ptr{real};
+    real->connect(hostname, port);
     return ptr;
 }
 
@@ -23,13 +24,13 @@ Connection::Pointer Connection::outgoing(Connection::IOService & ioService, cons
  * Public methods
  *****************/
 
-void Connection::beginReading(const DisconnectHandler & disconnectHandler)
+void RealConnection::beginReading(const DisconnectHandler & disconnectHandler)
 {
     _disconnectHandler = disconnectHandler;
     read();
 }
 
-void Connection::disconnect()
+void RealConnection::disconnect()
 {
     _connected = false;
     if (!_lastErrorCode) {
@@ -55,7 +56,7 @@ void Connection::disconnect()
     LOG_DEBUG("Connection disconnected");
 }
 
-Connection::ConnectionMap & Connection::peers()
+Connection::ConnectionMap & RealConnection::peers()
 {
     if (!_peers) {
         throw std::logic_error("An attempt to walk connections when there are none was made");
@@ -67,27 +68,24 @@ Connection::ConnectionMap & Connection::peers()
 * Private methods
 ******************/
 
-Connection::Connection(Type type,
-                      Connection::IOService & ioService,
-                      const RPCInvoker & invoker,
-                      const boost::uuids::uuid & uuid,
-                      ConnectionMap * peers)
-    : _incoming{}
+RealConnection::RealConnection(Type type,
+                               IOService & ioService,
+                               const RPCInvoker & invoker,
+                               const boost::uuids::uuid & uuid,
+                               ConnectionMap * peers)
+    : Connection{type, invoker, uuid}
+    , _incoming{}
     , _outgoing{}
     , _writing{false}
     , _socket{ioService}
-    , _invoker{invoker}
     , _connected{false}
     , _disconnectHandler{}
     , _lastErrorCode{}
-    , _uuid(uuid) // Cannot use new initialization syntax because it's an aggregate
     , _peers{peers}
-    , _type{type}
 {
-    LOG_DEBUG("Connection created");
 }
 
-void Connection::connect(const std::string & hostname, unsigned short port)
+void RealConnection::connect(const std::string & hostname, unsigned short port)
 {
     using boost::asio::ip::tcp;
 
@@ -116,24 +114,24 @@ void Connection::connect(const std::string & hostname, unsigned short port)
     read();
 }
 
-void Connection::write()
+void RealConnection::write()
 {
     boost::asio::async_write(_socket, _outgoing,
-        std::bind(&Connection::handleWrite, shared_from_this(),
+        std::bind(&RealConnection::handleWrite, getDerivedPointer(),
             std::placeholders::_1,
             std::placeholders::_2));
 }
 
-void Connection::read()
+void RealConnection::read()
 {
     _connected = true;
     boost::asio::async_read_until(_socket, _incoming, PACKET_END,
-        std::bind(&Connection::handleRead, shared_from_this(),
+        std::bind(&RealConnection::handleRead, getDerivedPointer(),
             std::placeholders::_1,
             std::placeholders::_2));
 }
 
-void Connection::handleRead(const boost::system::error_code & error, size_t size)
+void RealConnection::handleRead(const boost::system::error_code & error, size_t size)
 {
     if (error) {
         _lastErrorCode = error;
@@ -148,14 +146,14 @@ void Connection::handleRead(const boost::system::error_code & error, size_t size
 
     LOG_DEBUG("Local RPC executed: ", name);
 
-    _invoker.invoke(name, command, shared_from_this());
+    invoker().invoke(name, command, shared_from_this());
 
     if (_connected) {
         read();
     }
 }
 
-void Connection::handleWrite(const boost::system::error_code & error, size_t)
+void RealConnection::handleWrite(const boost::system::error_code & error, size_t)
 {
     if (error) {
         _lastErrorCode = error;

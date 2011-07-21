@@ -16,7 +16,12 @@ def configure(conf):
 
 def build(bld):
     bld.program(
-        source=['main.cpp', 'shared.cpp', 'connection.cpp', 'fake_connection.cpp'],
+        source=[
+            'main.cpp',
+            'shared.cpp',
+            'fake_connection.cpp',
+            'real_connection.cpp',
+            ],
         includes=['../call-with-tuple', '../serialize-tuple', '../dynamic-invocation',
             bld.env.PANTHEIOS + '/include',
             bld.env.STLSOFT + '/include',

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <unordered_map>
-#include "connection.h"
+#include "real_connection.h"
 
 class Server
 {
@@ -27,10 +27,10 @@ class Server
         void startAccept()
         {
             // Prepare a new connection to accept onto
-            Connection::Pointer newConnection = Connection::incoming(_acceptor.io_service(), _invoker, _uuidGen(), &_connections);
+            Connection::Pointer newConnection = RealConnection::incoming(_acceptor.io_service(), _invoker, _uuidGen(), &_connections);
 
             // Wait for one to accept (will call handleAccept)
-            _acceptor.async_accept(newConnection->socket(),
+            _acceptor.async_accept(std::static_pointer_cast<RealConnection>(newConnection)->socket(),
                 std::bind(&Server::handleAccept, this, newConnection, std::placeholders::_1));
         }
 
@@ -40,7 +40,7 @@ class Server
                 throw boost::system::system_error{error};
             }
 
-            LOG_NOTICE("Client connected: ", newConnection->socket().remote_endpoint(), " ", newConnection->uuid());
+            LOG_NOTICE("Client connected: ", std::static_pointer_cast<RealConnection>(newConnection)->socket().remote_endpoint(), " ", newConnection->uuid());
             _connections[newConnection->uuid()] = newConnection;
 
             // Begin reading on the new connection
@@ -52,7 +52,7 @@ class Server
 
         void handleDisconnect(Connection::Pointer connection, const boost::system::error_code & error)
         {
-            LOG_NOTICE("Client disconnected: ", connection->socket().remote_endpoint(), " ", connection->uuid());
+            LOG_NOTICE("Client disconnected: ", std::static_pointer_cast<RealConnection>(connection)->socket().remote_endpoint(), " ", connection->uuid());
             _connections.erase(connection->uuid());
         }
 
