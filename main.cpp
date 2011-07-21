@@ -34,7 +34,7 @@ int main(int argc, char * argv[])
     }
 
     try {
-        Connection::IOService ioService;
+        RealConnection::IOService ioService;
         Connection::RPCInvoker rpcInvoker{RPCMethods()};
         std::shared_ptr<Server> server;
         Connection::Pointer connection;
@@ -49,7 +49,7 @@ int main(int argc, char * argv[])
         }
         
         if (!runServer && !connectToServer) {
-            connection = FakeConnection::create(ioService, rpcInvoker);
+            connection = FakeConnection::create(rpcInvoker);
             connection->execute(SERVER_RPC(sendMessage), "FIRST!");
         }
 

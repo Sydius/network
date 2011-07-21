@@ -1,8 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <boost/asio.hpp>
+#include <boost/system/error_code.hpp>
 #include <boost/uuid/uuid.hpp>
+#include <boost/functional/hash.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
 #include "invoke.h"
@@ -21,7 +22,6 @@ class Connection: public std::enable_shared_from_this<Connection>
         typedef std::shared_ptr<Connection> Pointer;
         typedef std::weak_ptr<Connection> WeakPointer;
         typedef invoke::Invoker<Connection::Pointer> RPCInvoker;
-        typedef boost::asio::io_service IOService;
         typedef std::function<void (boost::system::error_code)> DisconnectHandler;
         typedef std::unordered_map<boost::uuids::uuid, Connection::WeakPointer, boost::hash<boost::uuids::uuid>> ConnectionMap;
         typedef enum { Unknown, Outgoing, Incoming, Fake } Type;

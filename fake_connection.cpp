@@ -4,9 +4,9 @@
  * Factory methods
  ******************/
 
-Connection::Pointer FakeConnection::create(IOService & ioService, const RPCInvoker & invoker)
+Connection::Pointer FakeConnection::create(const RPCInvoker & invoker)
 {
-    return Pointer{new FakeConnection{ioService, invoker}};
+    return Pointer{new FakeConnection{invoker}};
 }
 
 

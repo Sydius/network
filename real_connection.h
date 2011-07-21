@@ -2,9 +2,13 @@
 
 #include "connection.h"
 
+#include <boost/asio.hpp>
+
 class RealConnection: public Connection
 {
     public:
+        typedef boost::asio::io_service IOService;
+
         /**
          * Create a new connection object
          *
@@ -49,7 +53,7 @@ class RealConnection: public Connection
 
     protected:
         RealConnection(Type type,
-                       Connection::IOService & ioService,
+                       IOService & ioService,
                        const RPCInvoker & invoker,
                        const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(),
                        ConnectionMap * peers = NULL);
