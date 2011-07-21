@@ -2,16 +2,20 @@
 
 #include <memory>
 #include <boost/system/error_code.hpp>
-#include <boost/uuid/uuid.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+
 #include "invoke.h"
 #include "log.h"
 
-#define RPC(x) "rpc_" #x, x
-#define CLIENT_RPC(x) "client_" RPC(x)
-#define SERVER_RPC(x) "server_" RPC(x)
+/**
+ * Macros used to organize functions as being for both sides or just one.
+ */
+#define RPC(x) "rpc_" #x, x             // Both
+#define CLIENT_RPC(x) "client_" RPC(x)  // Client
+#define SERVER_RPC(x) "server_" RPC(x)  // Server
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++" // enable_shared_from_this doesn't need a virtual destructor
@@ -19,12 +23,13 @@ class Connection: public std::enable_shared_from_this<Connection>
 {
 #pragma GCC diagnostic pop
     public:
+        // Pointer types
         typedef std::shared_ptr<Connection> Pointer;
         typedef std::weak_ptr<Connection> WeakPointer;
+
         typedef invoke::Invoker<Connection::Pointer> RPCInvoker;
-        typedef std::function<void (boost::system::error_code)> DisconnectHandler;
+        
         typedef std::unordered_map<boost::uuids::uuid, Connection::WeakPointer, boost::hash<boost::uuids::uuid>> ConnectionMap;
-        typedef enum { Unknown, Outgoing, Incoming, Fake } Type;
 
         /**
          * Get the UUID of the connection.
@@ -45,13 +50,6 @@ class Connection: public std::enable_shared_from_this<Connection>
         {
             _uuid = uuid;
         }
-
-        /**
-         * Begin reading on this connection
-         *
-         * @param disconnectHandler Function to call when this connection disconnects
-         */
-        virtual void beginReading(const DisconnectHandler & disconnectHandler) {}
 
         /**
          * Execute an RPC on the other end of this connection (or immediately locally if not connected)
@@ -99,6 +97,9 @@ class Connection: public std::enable_shared_from_this<Connection>
         Connection(const Connection &) = delete;
 
     protected:
+        // Type of connection
+        typedef enum { Unknown, Outgoing, Incoming, Fake } Type;
+
         Connection(Type type,
                    const RPCInvoker & invoker,
                    const boost::uuids::uuid & uuid = boost::uuids::nil_uuid())

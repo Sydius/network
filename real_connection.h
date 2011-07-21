@@ -8,6 +8,7 @@ class RealConnection: public Connection
 {
     public:
         typedef boost::asio::io_service IOService;
+        typedef std::function<void (boost::system::error_code)> DisconnectHandler;
 
         /**
          * Create a new connection object
@@ -38,15 +39,18 @@ class RealConnection: public Connection
             return _socket;
         }
 
+        /**
+         * Begin reading on this connection
+         *
+         * @param disconnectHandler Function to call when this connection disconnects
+         */
         virtual void beginReading(const DisconnectHandler & disconnectHandler);
 
         virtual void disconnect();
 
         virtual ConnectionMap & peers();
 
-        virtual ~RealConnection()
-        {
-        }
+        virtual ~RealConnection() {}
 
         RealConnection & operator=(const RealConnection &) = delete;
         RealConnection(const RealConnection &) = delete;

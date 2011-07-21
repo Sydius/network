@@ -44,7 +44,7 @@ class Server
             _connections[newConnection->uuid()] = newConnection;
 
             // Begin reading on the new connection
-            newConnection->beginReading(std::bind(&Server::handleDisconnect, this, newConnection, std::placeholders::_1));
+            std::static_pointer_cast<RealConnection>(newConnection)->beginReading(std::bind(&Server::handleDisconnect, this, newConnection, std::placeholders::_1));
 
             // Wait for the next connection
             startAccept();
