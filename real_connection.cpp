@@ -1,25 +1,8 @@
 #include "real_connection.h"
 
-/******************
- * Factory methods
- ******************/
-
-Connection::Pointer RealConnection::incoming(const RPCInvoker & invoker, IOService & ioService,
-        const boost::uuids::uuid & uuid, ConnectionMap * peers)
-{
-    return Pointer{new RealConnection{Incoming, invoker, ioService, uuid, peers}};
-}
-
-
 /*****************
  * Public methods
  *****************/
-
-void RealConnection::beginReading(const DisconnectHandler & disconnectHandler)
-{
-    _disconnectHandler = disconnectHandler;
-    read();
-}
 
 void RealConnection::disconnect()
 {
@@ -32,12 +15,6 @@ void RealConnection::disconnect()
     if (!_lastErrorCode) {
         LOG_DEBUG("Closing socket");
         _socket.close(_lastErrorCode);
-    }
-
-    if (_disconnectHandler) {
-        LOG_DEBUG("Disconnect handler being called");
-        _disconnectHandler(_lastErrorCode);
-        _disconnectHandler = DisconnectHandler{};
     }
 
     if (_lastErrorCode && _lastErrorCode != boost::asio::error::eof) {
@@ -71,7 +48,6 @@ RealConnection::RealConnection(Type type,
     , _writing{false}
     , _socket{ioService}
     , _connected{false}
-    , _disconnectHandler{}
     , _lastErrorCode{}
     , _peers{peers}
 {

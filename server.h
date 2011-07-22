@@ -1,7 +1,7 @@
 #pragma once
 
 #include <unordered_map>
-#include "real_connection.h"
+#include "incoming_connection.h"
 
 class Server
 {
@@ -27,10 +27,10 @@ class Server
         void startAccept()
         {
             // Prepare a new connection to accept onto
-            Connection::Pointer newConnection = RealConnection::incoming(_invoker, _acceptor.io_service(), _uuidGen(), &_connections);
+            Connection::Pointer newConnection = IncomingConnection::create(_invoker, _acceptor.io_service(), _uuidGen(), &_connections);
 
             // Wait for one to accept (will call handleAccept)
-            _acceptor.async_accept(std::static_pointer_cast<RealConnection>(newConnection)->socket(),
+            _acceptor.async_accept(std::static_pointer_cast<IncomingConnection>(newConnection)->socket(),
                 std::bind(&Server::handleAccept, this, newConnection, std::placeholders::_1));
         }
 
@@ -40,11 +40,11 @@ class Server
                 throw boost::system::system_error{error};
             }
 
-            LOG_NOTICE("Client connected: ", std::static_pointer_cast<RealConnection>(newConnection)->socket().remote_endpoint(), " ", newConnection->uuid());
+            LOG_NOTICE("Client connected: ", std::static_pointer_cast<IncomingConnection>(newConnection)->socket().remote_endpoint(), " ", newConnection->uuid());
             _connections[newConnection->uuid()] = newConnection;
 
             // Begin reading on the new connection
-            std::static_pointer_cast<RealConnection>(newConnection)->beginReading(std::bind(&Server::handleDisconnect, this, newConnection, std::placeholders::_1));
+            std::static_pointer_cast<IncomingConnection>(newConnection)->beginReading(std::bind(&Server::handleDisconnect, this, newConnection, std::placeholders::_1));
 
             // Wait for the next connection
             startAccept();
@@ -52,7 +52,7 @@ class Server
 
         void handleDisconnect(Connection::Pointer connection, const boost::system::error_code & error)
         {
-            LOG_NOTICE("Client disconnected: ", std::static_pointer_cast<RealConnection>(connection)->socket().remote_endpoint(), " ", connection->uuid());
+            LOG_NOTICE("Client disconnected: ", std::static_pointer_cast<IncomingConnection>(connection)->socket().remote_endpoint(), " ", connection->uuid());
             _connections.erase(connection->uuid());
         }
 

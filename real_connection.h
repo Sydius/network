@@ -8,19 +8,6 @@ class RealConnection: public Connection
 {
     public:
         typedef boost::asio::io_service IOService;
-        typedef std::function<void (boost::system::error_code)> DisconnectHandler;
-
-        /**
-         * Create a new connection object
-         *
-         * @param invoker   RPC invoker to use with this connection
-         * @param ioService IOService to use (not used if never connected)
-         * @param uuid      UUID for the connection
-         * @param peers     A map of peer connections
-         * @return          A shared Pointer to a new connection object
-         */
-        static Pointer incoming(const RPCInvoker & invoker, IOService & ioService,
-                const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(), ConnectionMap * peers = NULL);
 
         /**
          * Get the socket used by this connection.
@@ -31,13 +18,6 @@ class RealConnection: public Connection
         {
             return _socket;
         }
-
-        /**
-         * Begin reading on this connection
-         *
-         * @param disconnectHandler Function to call when this connection disconnects
-         */
-        virtual void beginReading(const DisconnectHandler & disconnectHandler);
 
         virtual void disconnect();
 
@@ -56,6 +36,11 @@ class RealConnection: public Connection
                        ConnectionMap * peers = NULL);
 
         void read();
+
+        boost::system::error_code lastErrorCode() const
+        {
+            return _lastErrorCode;
+        }
 
         void lastErrorCode(boost::system::error_code error)
         {
@@ -92,7 +77,6 @@ class RealConnection: public Connection
         bool _writing; // True if it's already sending data
         boost::asio::ip::tcp::socket _socket;
         bool _connected;
-        DisconnectHandler _disconnectHandler;
         boost::system::error_code _lastErrorCode;
         ConnectionMap * _peers; // Peer connections
 
