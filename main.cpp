@@ -1,4 +1,6 @@
 #include <iostream>
+#include <chrono>
+
 #include "shared.h"
 #include "real_server.h"
 #include "fake_server.h"
@@ -50,11 +52,15 @@ int main(int argc, char * argv[])
             connection = SydNet::OutgoingConnection::create(rpcInvoker, ioService, "localhost", 2000);
         }
 
-        int iTicks = 0;
+        auto time = std::chrono::monotonic_clock::now();
         while (true) {
-            if (iTicks++ % 1000000 == 0 && server) {
-                for (auto & client: server->clients()) {
-                    SydNet::Connection::Pointer{client.second}->execute(CLIENT_RPC(printMessage), "Tick!");
+            if (std::chrono::monotonic_clock::now() - time > std::chrono::seconds(1)) {
+                time += std::chrono::milliseconds(500);
+
+                if (server) {
+                    for (auto & client: server->clients()) {
+                        SydNet::Connection::Pointer{client.second}->execute(CLIENT_RPC(printMessage), "Tick!");
+                    }
                 }
             }
             ioService.poll();
