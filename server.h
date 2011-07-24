@@ -2,6 +2,8 @@
 
 #include "connection.h"
 
+namespace SydNet {
+
 class Server
 {
     public:
@@ -31,3 +33,5 @@ class Server
     private:
         Connection::RPCInvoker _invoker;
 };
+
+}

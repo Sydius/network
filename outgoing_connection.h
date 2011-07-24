@@ -2,6 +2,8 @@
 
 #include "real_connection.h"
 
+namespace SydNet {
+
 class OutgoingConnection: public RealConnection
 {
 
@@ -24,3 +26,5 @@ class OutgoingConnection: public RealConnection
 
         void connect(const std::string & hostname, unsigned short port);
 };
+
+}

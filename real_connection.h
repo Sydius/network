@@ -4,6 +4,8 @@
 
 #include "connection.h"
 
+namespace SydNet {
+
 class RealConnection: public Connection
 {
     public:
@@ -82,3 +84,5 @@ class RealConnection: public Connection
 
         static const char PACKET_END = '\0';
 };
+
+}

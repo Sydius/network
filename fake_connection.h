@@ -2,6 +2,8 @@
 
 #include "connection.h"
 
+namespace SydNet {
+
 class FakeConnection: public Connection
 {
     public:
@@ -24,3 +26,5 @@ class FakeConnection: public Connection
 
         ConnectionMap _peers;
 };
+
+}

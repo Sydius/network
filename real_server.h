@@ -5,6 +5,8 @@
 #include <unordered_map>
 #include "incoming_connection.h"
 
+namespace SydNet {
+
 class RealServer: public Server
 {
     public:
@@ -68,3 +70,5 @@ class RealServer: public Server
         boost::uuids::random_generator _uuidGen;
         Connection::ConnectionMap _connectionMap;
 };
+
+}

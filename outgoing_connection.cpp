@@ -1,5 +1,7 @@
 #include "outgoing_connection.h"
 
+namespace SydNet {
+
 /******************
  * Factory methods
  ******************/
@@ -45,4 +47,6 @@ void OutgoingConnection::connect(const std::string & hostname, unsigned short po
     LOG_NOTICE("Connected: ", endPoint);
 
     read();
+}
+
 }

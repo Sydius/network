@@ -35,26 +35,26 @@ int main(int argc, char * argv[])
     }
 
     try {
-        RealConnection::IOService ioService;
-        Connection::RPCInvoker rpcInvoker{RPCMethods()};
-        std::shared_ptr<Server> server;
-        Connection::Pointer connection;
+        SydNet::RealConnection::IOService ioService;
+        SydNet::Connection::RPCInvoker rpcInvoker{RPCMethods()};
+        std::shared_ptr<SydNet::Server> server;
+        SydNet::Connection::Pointer connection;
 
         if (runServer) {
-            server = std::shared_ptr<Server>{new RealServer(rpcInvoker, ioService, 2000)};
+            server = std::shared_ptr<SydNet::Server>{new SydNet::RealServer(rpcInvoker, ioService, 2000)};
         } else if (!connectToServer) {
-            server = std::shared_ptr<Server>{new FakeServer(rpcInvoker)};
+            server = std::shared_ptr<SydNet::Server>{new SydNet::FakeServer(rpcInvoker)};
         }
 
         if (connectToServer) {
-            connection = OutgoingConnection::create(rpcInvoker, ioService, "localhost", 2000);
+            connection = SydNet::OutgoingConnection::create(rpcInvoker, ioService, "localhost", 2000);
         }
 
         int iTicks = 0;
         while (true) {
             if (iTicks++ % 1000000 == 0 && server) {
                 for (auto & client: server->clients()) {
-                    Connection::Pointer{client.second}->execute(CLIENT_RPC(printMessage), "Tick!");
+                    SydNet::Connection::Pointer{client.second}->execute(CLIENT_RPC(printMessage), "Tick!");
                 }
             }
             ioService.poll();

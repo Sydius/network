@@ -1,5 +1,7 @@
 #include "incoming_connection.h"
 
+namespace SydNet {
+
 /******************
  * Factory methods
  ******************/
@@ -29,4 +31,6 @@ void IncomingConnection::disconnect()
         _disconnectHandler = DisconnectHandler{};
     }
     RealConnection::disconnect();
+}
+
 }

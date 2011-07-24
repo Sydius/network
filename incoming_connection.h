@@ -2,6 +2,8 @@
 
 #include "real_connection.h"
 
+namespace SydNet {
+
 class IncomingConnection: public RealConnection
 {
     public:
@@ -36,3 +38,5 @@ class IncomingConnection: public RealConnection
 
         DisconnectHandler _disconnectHandler;
 };
+
+}

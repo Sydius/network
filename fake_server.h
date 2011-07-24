@@ -3,6 +3,8 @@
 #include "server.h"
 #include "fake_connection.h"
 
+namespace SydNet {
+
 class FakeServer: public Server
 {
     public:
@@ -23,3 +25,5 @@ class FakeServer: public Server
         Connection::Pointer _connection;
         Connection::ConnectionMap _connectionMap;
 };
+
+}

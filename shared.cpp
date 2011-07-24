@@ -3,21 +3,21 @@
 #include <iostream>
 #include <boost/lexical_cast.hpp>
 
-void printMessage(const std::string & message, Connection::Pointer connection)
+void printMessage(const std::string & message, SydNet::Connection::Pointer connection)
 {
     std::cout << message << std::endl;
 }
 
-void sendMessage(const std::string & message, Connection::Pointer connection)
+void sendMessage(const std::string & message, SydNet::Connection::Pointer connection)
 {
     for (auto & peer: connection->peers()) {
-        Connection::Pointer{peer.second}->execute(CLIENT_RPC(printMessage), boost::lexical_cast<std::string>(connection->uuid()) + ": " + message);
+        SydNet::Connection::Pointer{peer.second}->execute(CLIENT_RPC(printMessage), boost::lexical_cast<std::string>(connection->uuid()) + ": " + message);
     }
 }
 
-Connection::RPCInvoker RPCMethods()
+SydNet::Connection::RPCInvoker RPCMethods()
 {
-    Connection::RPCInvoker invoker;
+    SydNet::Connection::RPCInvoker invoker;
     invoker.registerFunction(CLIENT_RPC(printMessage));
     invoker.registerFunction(SERVER_RPC(sendMessage));
     return invoker;

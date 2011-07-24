@@ -2,8 +2,8 @@
 
 #include "connection.h"
 
-void printMessage(const std::string & message, Connection::Pointer connection);
+void printMessage(const std::string & message, SydNet::Connection::Pointer connection);
 
-void sendMessage(const std::string & message, Connection::Pointer connection);
+void sendMessage(const std::string & message, SydNet::Connection::Pointer connection);
 
-Connection::RPCInvoker RPCMethods();
+SydNet::Connection::RPCInvoker RPCMethods();

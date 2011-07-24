@@ -17,6 +17,8 @@
 #define CLIENT_RPC(x) "client_" RPC(x)  // Client
 #define SERVER_RPC(x) "server_" RPC(x)  // Server
 
+namespace SydNet {
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++" // enable_shared_from_this doesn't need a virtual destructor
 class Connection: public std::enable_shared_from_this<Connection>
@@ -125,3 +127,5 @@ class Connection: public std::enable_shared_from_this<Connection>
         boost::uuids::uuid _uuid;
         Type _type;
 };
+
+}

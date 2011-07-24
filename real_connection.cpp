@@ -1,5 +1,7 @@
 #include "real_connection.h"
 
+namespace SydNet {
+
 /*****************
  * Public methods
  *****************/
@@ -110,4 +112,6 @@ void RealConnection::handleWrite(const boost::system::error_code & error, size_t
     } else {
         _writing = false;
     }
+}
+
 }

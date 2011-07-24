@@ -1,5 +1,7 @@
 #include "fake_connection.h"
 
+namespace SydNet {
+
 /******************
  * Factory methods
  ******************/
@@ -20,4 +22,6 @@ Connection::ConnectionMap & FakeConnection::peers()
         _peers[uuid()] = shared_from_this();
     }
     return _peers;
+}
+
 }
