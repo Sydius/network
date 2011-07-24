@@ -1,7 +1,6 @@
 #include <iostream>
 #include "shared.h"
-#include "server.h"
-#include "connection.h"
+#include "real_server.h"
 #include "fake_connection.h"
 #include "outgoing_connection.h"
 
@@ -41,7 +40,7 @@ int main(int argc, char * argv[])
         Connection::Pointer connection;
 
         if (runServer) {
-            server = std::shared_ptr<Server>{new Server(ioService, rpcInvoker, 2000)};
+            server = std::shared_ptr<Server>{new RealServer(ioService, rpcInvoker, 2000)};
         }
 
         if (connectToServer) {
