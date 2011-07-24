@@ -54,8 +54,9 @@ int main(int argc, char * argv[])
 
         auto time = std::chrono::monotonic_clock::now();
         while (true) {
-            if (std::chrono::monotonic_clock::now() - time > std::chrono::seconds(1)) {
-                time += std::chrono::milliseconds(500);
+            static const auto duration = std::chrono::milliseconds(500);
+            if (std::chrono::monotonic_clock::now() - time > duration) {
+                time += duration;
 
                 if (server) {
                     for (auto & client: server->clients()) {
