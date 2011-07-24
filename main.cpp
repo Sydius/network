@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
         Connection::Pointer connection;
 
         if (runServer) {
-            server = std::shared_ptr<Server>{new RealServer(ioService, rpcInvoker, 2000)};
+            server = std::shared_ptr<Server>{new RealServer(rpcInvoker, ioService, 2000)};
         }
 
         if (connectToServer) {

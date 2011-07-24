@@ -11,11 +11,11 @@ class RealServer: public Server
         /**
          * Create a server instance and start accepting connections.
          *
-         * @param ioService IO service to use for this server
          * @param invoker   RPC method invoker to use with this server
+         * @param ioService IO service to use for this server
          * @param port      port to listen on
          */
-        RealServer(RealConnection::IOService & ioService, const Connection::RPCInvoker & invoker, unsigned short port)
+        RealServer(const Connection::RPCInvoker & invoker, RealConnection::IOService & ioService, unsigned short port)
             : _acceptor{ioService, boost::asio::ip::tcp::endpoint{boost::asio::ip::tcp::v4(), port}}
             , _invoker{invoker}
             , _uuidGen{}
