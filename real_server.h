@@ -16,20 +16,25 @@ class RealServer: public Server
          * @param port      port to listen on
          */
         RealServer(const Connection::RPCInvoker & invoker, RealConnection::IOService & ioService, unsigned short port)
-            : _acceptor{ioService, boost::asio::ip::tcp::endpoint{boost::asio::ip::tcp::v4(), port}}
-            , _invoker{invoker}
+            : Server{invoker}
+            , _acceptor{ioService, boost::asio::ip::tcp::endpoint{boost::asio::ip::tcp::v4(), port}}
             , _uuidGen{}
-            , _connections{}
+            , _connectionMap{}
         {
             startAccept(); // Start accepting connections immediately
             LOG_NOTICE("Accepting connections at ", _acceptor.local_endpoint());
+        }
+
+        Connection::ConnectionMap & clients()
+        {
+            return _connectionMap;
         }
 
     private:
         void startAccept()
         {
             // Prepare a new connection to accept onto
-            Connection::Pointer newConnection = IncomingConnection::create(_invoker, _acceptor.io_service(), _uuidGen(), &_connections);
+            Connection::Pointer newConnection = IncomingConnection::create(invoker(), _acceptor.io_service(), _uuidGen(), &_connectionMap);
 
             // Wait for one to accept (will call handleAccept)
             _acceptor.async_accept(std::static_pointer_cast<IncomingConnection>(newConnection)->socket(),
@@ -43,7 +48,7 @@ class RealServer: public Server
             }
 
             LOG_NOTICE("Client connected: ", std::static_pointer_cast<IncomingConnection>(newConnection)->socket().remote_endpoint(), " ", newConnection->uuid());
-            _connections[newConnection->uuid()] = newConnection;
+            _connectionMap[newConnection->uuid()] = newConnection;
 
             // Begin reading on the new connection
             std::static_pointer_cast<IncomingConnection>(newConnection)->beginReading(
@@ -56,11 +61,10 @@ class RealServer: public Server
         void handleDisconnect(Connection::Pointer connection, const boost::system::error_code & error)
         {
             LOG_NOTICE("Client disconnected: ", std::static_pointer_cast<IncomingConnection>(connection)->socket().remote_endpoint(), " ", connection->uuid());
-            _connections.erase(connection->uuid());
+            _connectionMap.erase(connection->uuid());
         }
 
         boost::asio::ip::tcp::acceptor _acceptor;
-        Connection::RPCInvoker _invoker;
         boost::uuids::random_generator _uuidGen;
-        Connection::ConnectionMap _connections;
+        Connection::ConnectionMap _connectionMap;
 };

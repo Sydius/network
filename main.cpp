@@ -42,20 +42,23 @@ int main(int argc, char * argv[])
 
         if (runServer) {
             server = std::shared_ptr<Server>{new RealServer(rpcInvoker, ioService, 2000)};
+        } else if (!connectToServer) {
+            server = std::shared_ptr<Server>{new FakeServer(rpcInvoker)};
         }
 
         if (connectToServer) {
             connection = OutgoingConnection::create(rpcInvoker, ioService, "localhost", 2000);
-            connection->execute(SERVER_RPC(sendMessage), "FOO!");
-        }
-        
-        if (!runServer && !connectToServer) {
-            server = std::shared_ptr<Server>{new FakeServer()};
-            connection = FakeConnection::create(rpcInvoker);
-            connection->execute(SERVER_RPC(sendMessage), "FIRST!");
         }
 
-        ioService.run();
+        int iTicks = 0;
+        while (true) {
+            if (iTicks++ % 1000000 == 0 && server) {
+                for (auto & client: server->clients()) {
+                    Connection::Pointer{client.second}->execute(CLIENT_RPC(printMessage), "Tick!");
+                }
+            }
+            ioService.poll();
+        }
     } catch (const boost::system::system_error & e) {
         LOG_CRITICAL("System error (", e.code(), "): ", e.what());
     } catch (const std::exception & e) {
