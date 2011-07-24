@@ -35,7 +35,7 @@ int main(int argc, char * argv[])
     }
 
     try {
-        SydNet::RealConnection::IOService ioService;
+        SydNet::IOService ioService;
         SydNet::Connection::RPCInvoker rpcInvoker{RPCMethods()};
         std::shared_ptr<SydNet::Server> server;
         SydNet::Connection::Pointer connection;

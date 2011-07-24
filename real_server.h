@@ -17,7 +17,7 @@ class RealServer: public Server
          * @param ioService IO service to use for this server
          * @param port      port to listen on
          */
-        RealServer(const Connection::RPCInvoker & invoker, RealConnection::IOService & ioService, unsigned short port)
+        RealServer(const Connection::RPCInvoker & invoker, IOService & ioService, unsigned short port)
             : Server{invoker}
             , _acceptor{ioService, boost::asio::ip::tcp::endpoint{boost::asio::ip::tcp::v4(), port}}
             , _uuidGen{}

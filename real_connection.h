@@ -2,6 +2,7 @@
 
 #include <boost/asio.hpp>
 
+#include "io_service.h"
 #include "connection.h"
 
 namespace SydNet {
@@ -9,8 +10,6 @@ namespace SydNet {
 class RealConnection: public Connection
 {
     public:
-        typedef boost::asio::io_service IOService;
-
         /**
          * Get the socket used by this connection.
          *
