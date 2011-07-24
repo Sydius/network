@@ -1,6 +1,7 @@
 #include <iostream>
 #include "shared.h"
 #include "real_server.h"
+#include "fake_server.h"
 #include "fake_connection.h"
 #include "outgoing_connection.h"
 
@@ -49,6 +50,7 @@ int main(int argc, char * argv[])
         }
         
         if (!runServer && !connectToServer) {
+            server = std::shared_ptr<Server>{new FakeServer()};
             connection = FakeConnection::create(rpcInvoker);
             connection->execute(SERVER_RPC(sendMessage), "FIRST!");
         }
