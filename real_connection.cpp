@@ -73,7 +73,7 @@ void RealConnection::remoteExecute(const std::string & name, const std::string &
 {
     std::ostream outgoingStream{&_outgoing};
     outgoingStream << name << PACKET_END;
-    uint32_t size{params.length()};
+    uint16_t size{params.length()};
     outgoingStream.write(reinterpret_cast<char *>(&size), sizeof(size));
     outgoingStream << params;
 
@@ -102,7 +102,7 @@ void RealConnection::handleRead(const boost::system::error_code & error, size_t 
     std::istream inputStream(&_incoming);
     std::string name;
     std::getline(inputStream, name, PACKET_END);
-    inputStream.ignore(sizeof(uint32_t));
+    inputStream.ignore(sizeof(uint16_t));
 
     LOG_DEBUG("Local RPC executed: ", name);
 
