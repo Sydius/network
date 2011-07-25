@@ -49,6 +49,8 @@ class RealConnection: public Connection
         }
 
     private:
+        typedef uint16_t CommandSize;
+
         void remoteExecute(const std::string & name, const std::string & params);
 
         std::shared_ptr<RealConnection> getDerivedPointer()
@@ -60,7 +62,7 @@ class RealConnection: public Connection
 
         void handleReadCommandHeader(const boost::system::error_code & error, size_t size);
 
-        void handleReadCommand(const boost::system::error_code & error, size_t size, uint16_t commandSize);
+        void handleReadCommand(const boost::system::error_code & error, size_t size, CommandSize commandSize);
 
         void handleWrite(const boost::system::error_code & error, size_t);
 

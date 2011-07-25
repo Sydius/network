@@ -59,10 +59,10 @@ void RealConnection::read(size_t size)
 {
     _connected = true;
 
-    if (size >= sizeof(uint16_t)) {
+    if (size >= sizeof(CommandSize)) {
         handleReadCommandHeader(boost::system::error_code{}, size);
     } else {
-        boost::asio::async_read(_socket, _incoming, boost::asio::transfer_at_least(sizeof(uint16_t) - size),
+        boost::asio::async_read(_socket, _incoming, boost::asio::transfer_at_least(sizeof(CommandSize) - size),
             std::bind(&RealConnection::handleReadCommandHeader, getDerivedPointer(),
                 std::placeholders::_1,
                 std::placeholders::_2));
@@ -77,7 +77,7 @@ void RealConnection::read(size_t size)
 void RealConnection::remoteExecute(const std::string & name, const std::string & params)
 {
     std::ostream outgoingStream{&_outgoing};
-    uint16_t size{name.length() + params.length() + sizeof(PACKET_END)};
+    CommandSize size{name.length() + params.length() + sizeof(PACKET_END)};
     outgoingStream.write(reinterpret_cast<char *>(&size), sizeof(size));
     outgoingStream << name << PACKET_END;
     outgoingStream << params;
@@ -106,9 +106,9 @@ void RealConnection::handleReadCommandHeader(const boost::system::error_code & e
 
     std::istream inputStream(&_incoming);
 
-    uint16_t commandSize;
-    inputStream.read(reinterpret_cast<char *>(&commandSize), sizeof(uint16_t));
-    size -= sizeof(uint16_t);
+    CommandSize commandSize;
+    inputStream.read(reinterpret_cast<char *>(&commandSize), sizeof(CommandSize));
+    size -= sizeof(CommandSize);
 
     if (size >= commandSize) {
         handleReadCommand(error, size, commandSize);
@@ -121,7 +121,7 @@ void RealConnection::handleReadCommandHeader(const boost::system::error_code & e
     }
 }
 
-void RealConnection::handleReadCommand(const boost::system::error_code & error, size_t size, uint16_t commandSize)
+void RealConnection::handleReadCommand(const boost::system::error_code & error, size_t size, CommandSize commandSize)
 {
     if (error) {
         _lastErrorCode = error;
