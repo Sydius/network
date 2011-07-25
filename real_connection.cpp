@@ -55,13 +55,18 @@ RealConnection::RealConnection(Type type,
 {
 }
 
-void RealConnection::read()
+void RealConnection::read(size_t size)
 {
     _connected = true;
-    boost::asio::async_read_until(_socket, _incoming, PACKET_END,
-        std::bind(&RealConnection::handleRead, getDerivedPointer(),
-            std::placeholders::_1,
-            std::placeholders::_2));
+
+    if (size >= sizeof(uint16_t)) {
+        handleReadCommandHeader(boost::system::error_code{}, size);
+    } else {
+        boost::asio::async_read(_socket, _incoming, boost::asio::transfer_at_least(sizeof(uint16_t) - size),
+            std::bind(&RealConnection::handleReadCommandHeader, getDerivedPointer(),
+                std::placeholders::_1,
+                std::placeholders::_2));
+    }
 }
 
 
@@ -72,9 +77,9 @@ void RealConnection::read()
 void RealConnection::remoteExecute(const std::string & name, const std::string & params)
 {
     std::ostream outgoingStream{&_outgoing};
-    outgoingStream << name << PACKET_END;
-    uint16_t size{params.length()};
+    uint16_t size{name.length() + params.length() + sizeof(PACKET_END)};
     outgoingStream.write(reinterpret_cast<char *>(&size), sizeof(size));
+    outgoingStream << name << PACKET_END;
     outgoingStream << params;
 
     if (!_writing) {
@@ -91,7 +96,7 @@ void RealConnection::write()
             std::placeholders::_2));
 }
 
-void RealConnection::handleRead(const boost::system::error_code & error, size_t size)
+void RealConnection::handleReadCommandHeader(const boost::system::error_code & error, size_t size)
 {
     if (error) {
         _lastErrorCode = error;
@@ -100,9 +105,34 @@ void RealConnection::handleRead(const boost::system::error_code & error, size_t 
     }
 
     std::istream inputStream(&_incoming);
+
+    uint16_t commandSize;
+    inputStream.read(reinterpret_cast<char *>(&commandSize), sizeof(uint16_t));
+    size -= sizeof(uint16_t);
+
+    if (size >= commandSize) {
+        handleReadCommand(error, size, commandSize);
+    } else {
+        boost::asio::async_read(_socket, _incoming, boost::asio::transfer_at_least(commandSize - size),
+            std::bind(&RealConnection::handleReadCommand, getDerivedPointer(),
+                std::placeholders::_1,
+                std::placeholders::_2,
+                commandSize));
+    }
+}
+
+void RealConnection::handleReadCommand(const boost::system::error_code & error, size_t size, uint16_t commandSize)
+{
+    if (error) {
+        _lastErrorCode = error;
+        disconnect();
+        return;
+    }
+
+    std::istream inputStream(&_incoming);
+
     std::string name;
     std::getline(inputStream, name, PACKET_END);
-    inputStream.ignore(sizeof(uint16_t));
 
     LOG_DEBUG("Local RPC executed: ", name);
 
@@ -110,7 +140,8 @@ void RealConnection::handleRead(const boost::system::error_code & error, size_t 
     invoker().invoke(name, inputStream, result, shared_from_this());
 
     if (_connected) {
-        read();
+        size -= commandSize;
+        read(size);
     }
 }
 

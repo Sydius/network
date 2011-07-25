@@ -6,7 +6,7 @@
 void printMessage(const std::string & message, SydNet::Connection::Pointer connection)
 {
     std::cout << message << std::endl;
-    if (message != "OK!") {
+    if (message == "Tick!") {
         connection->execute(SERVER_RPC(gotMessage));
     }
 }
@@ -22,6 +22,9 @@ void gotMessage(SydNet::Connection::Pointer connection)
 {
     std::cout << "Got message" << std::endl;
     connection->execute(CLIENT_RPC(printMessage), "OK!");
+    connection->execute(CLIENT_RPC(printMessage), "ONE!");
+    connection->execute(CLIENT_RPC(printMessage), "TWO!");
+    connection->execute(CLIENT_RPC(printMessage), "THREE!");
 }
 
 SydNet::Connection::RPCInvoker RPCMethods()

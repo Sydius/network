@@ -36,7 +36,7 @@ class RealConnection: public Connection
                        const boost::uuids::uuid & uuid = boost::uuids::nil_uuid(),
                        ConnectionMap * peers = NULL);
 
-        void read();
+        void read(size_t size=0);
 
         boost::system::error_code lastErrorCode() const
         {
@@ -58,7 +58,9 @@ class RealConnection: public Connection
 
         void write();
 
-        void handleRead(const boost::system::error_code & error, size_t size);
+        void handleReadCommandHeader(const boost::system::error_code & error, size_t size);
+
+        void handleReadCommand(const boost::system::error_code & error, size_t size, uint16_t commandSize);
 
         void handleWrite(const boost::system::error_code & error, size_t);
 
