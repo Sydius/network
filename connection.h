@@ -67,40 +67,24 @@ class Connection: public std::enable_shared_from_this<Connection>
         template<typename Function, typename... Args>
         inline void execute(std::string && name, Function function, Args && ... args)
         {
-            switch (_type) {
-                case Incoming:
-                case Outgoing:
-                    {
-                        std::stringstream serialized;
-                        _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
-                        remoteExecute(std::forward<std::string>(name), serialized.str());
-                    }
-                    break;
-                case Fake:
-                    function(std::forward<Args>(args)..., shared_from_this());
-                    break;
-                default:
-                    throw std::logic_error("Execute called on unknown link type");
+            if (_type != Fake) {
+                std::stringstream serialized;
+                _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
+                remoteExecute(std::forward<std::string>(name), serialized.str());
+            } else {
+                function(std::forward<Args>(args)..., shared_from_this());
             }
         }
 
         template<typename Function, typename Callback, typename... Args>
         inline void executeCallback(std::string && name, Function function, Callback callback, Args && ... args)
         {
-            switch (_type) {
-                case Incoming:
-                case Outgoing:
-                    {
-                        std::stringstream serialized;
-                        _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
-                        remoteExecute(std::forward<std::string>(name), serialized.str());
-                    }
-                    break;
-                case Fake:
-                    callback(function(std::forward<Args>(args)..., shared_from_this()));
-                    break;
-                default:
-                    throw std::logic_error("Execute called on unknown link type");
+            if (_type != Fake) {
+                std::stringstream serialized;
+                _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
+                remoteExecute(std::forward<std::string>(name), serialized.str());
+            } else {
+                callback(function(std::forward<Args>(args)..., shared_from_this()));
             }
         }
 
