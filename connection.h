@@ -71,15 +71,33 @@ class Connection: public std::enable_shared_from_this<Connection>
                 case Incoming:
                 case Outgoing:
                     {
-                        //LOG_DEBUG("Remote RPC executed: ", name);
                         std::stringstream serialized;
                         _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
                         remoteExecute(std::forward<std::string>(name), serialized.str());
                     }
                     break;
                 case Fake:
-                    //LOG_DEBUG("Fake RPC executed: ", name);
                     function(std::forward<Args>(args)..., shared_from_this());
+                    break;
+                default:
+                    throw std::logic_error("Execute called on unknown link type");
+            }
+        }
+
+        template<typename Function, typename Callback, typename... Args>
+        inline void executeCallback(std::string && name, Function function, Callback callback, Args && ... args)
+        {
+            switch (_type) {
+                case Incoming:
+                case Outgoing:
+                    {
+                        std::stringstream serialized;
+                        _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
+                        remoteExecute(std::forward<std::string>(name), serialized.str());
+                    }
+                    break;
+                case Fake:
+                    callback(function(std::forward<Args>(args)..., shared_from_this()));
                     break;
                 default:
                     throw std::logic_error("Execute called on unknown link type");

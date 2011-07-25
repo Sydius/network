@@ -18,13 +18,20 @@ void sendMessage(const std::string & message, SydNet::Connection::Pointer connec
     }
 }
 
+int mul(int x, SydNet::Connection::Pointer connection)
+{
+    return x * 5;
+}
+
+static void gotMessageResult(int result, int add)
+{
+    std::cout << result + add << std::endl;
+}
+
 void gotMessage(SydNet::Connection::Pointer connection)
 {
     std::cout << "Got message" << std::endl;
-    connection->execute(CLIENT_RPC(printMessage), "OK!");
-    connection->execute(CLIENT_RPC(printMessage), "ONE!");
-    connection->execute(CLIENT_RPC(printMessage), "TWO!");
-    connection->execute(CLIENT_RPC(printMessage), "THREE!");
+    connection->executeCallback(CLIENT_RPC(mul), std::bind(gotMessageResult, std::placeholders::_1, 2), 3);
 }
 
 SydNet::Connection::RPCInvoker RPCMethods()
@@ -33,5 +40,6 @@ SydNet::Connection::RPCInvoker RPCMethods()
     invoker.registerFunction(CLIENT_RPC(printMessage));
     invoker.registerFunction(SERVER_RPC(sendMessage));
     invoker.registerFunction(SERVER_RPC(gotMessage));
+    invoker.registerFunction(CLIENT_RPC(mul));
     return invoker;
 }

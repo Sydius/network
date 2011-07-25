@@ -6,6 +6,8 @@ void printMessage(const std::string & message, SydNet::Connection::Pointer conne
 
 void sendMessage(const std::string & message, SydNet::Connection::Pointer connection);
 
+int mul(int x, SydNet::Connection::Pointer connection);
+
 void gotMessage(SydNet::Connection::Pointer connection);
 
 SydNet::Connection::RPCInvoker RPCMethods();
