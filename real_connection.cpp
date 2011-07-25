@@ -69,6 +69,20 @@ void RealConnection::read()
 * Private methods
 ******************/
 
+void RealConnection::remoteExecute(const std::string & name, const std::string & params)
+{
+    std::ostream outgoingStream{&_outgoing};
+    outgoingStream << name << PACKET_END;
+    uint32_t size{params.length()};
+    outgoingStream.write(reinterpret_cast<char *>(&size), sizeof(size));
+    outgoingStream << params;
+
+    if (!_writing) {
+        _writing = true;
+        write();
+    }
+}
+
 void RealConnection::write()
 {
     boost::asio::async_write(_socket, _outgoing,
@@ -85,14 +99,15 @@ void RealConnection::handleRead(const boost::system::error_code & error, size_t 
         return;
     }
 
-    std::istream is(&_incoming);
-    std::string name, command;
-    std::getline(is, name, PACKET_END);
-    std::getline(is, command, PACKET_END);
+    std::istream inputStream(&_incoming);
+    std::string name;
+    std::getline(inputStream, name, PACKET_END);
+    inputStream.ignore(sizeof(uint32_t));
 
     LOG_DEBUG("Local RPC executed: ", name);
 
-    invoker().invoke(name, command, shared_from_this());
+    std::stringstream result;
+    invoker().invoke(name, inputStream, result, shared_from_this());
 
     if (_connected) {
         read();

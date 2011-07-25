@@ -49,18 +49,7 @@ class RealConnection: public Connection
         }
 
     private:
-        void remoteExecute(const std::string & name, const std::string & params)
-        {
-            std::ostream outgoingStream{&_outgoing};
-            outgoingStream << name << PACKET_END;
-            outgoingStream << params;
-            outgoingStream << PACKET_END;
-
-            if (!_writing) {
-                _writing = true;
-                write();
-            }
-        }
+        void remoteExecute(const std::string & name, const std::string & params);
 
         std::shared_ptr<RealConnection> getDerivedPointer()
         {

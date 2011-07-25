@@ -6,6 +6,9 @@
 void printMessage(const std::string & message, SydNet::Connection::Pointer connection)
 {
     std::cout << message << std::endl;
+    if (message != "OK!") {
+        connection->execute(SERVER_RPC(gotMessage));
+    }
 }
 
 void sendMessage(const std::string & message, SydNet::Connection::Pointer connection)
@@ -15,10 +18,17 @@ void sendMessage(const std::string & message, SydNet::Connection::Pointer connec
     }
 }
 
+void gotMessage(SydNet::Connection::Pointer connection)
+{
+    std::cout << "Got message" << std::endl;
+    connection->execute(CLIENT_RPC(printMessage), "OK!");
+}
+
 SydNet::Connection::RPCInvoker RPCMethods()
 {
     SydNet::Connection::RPCInvoker invoker;
     invoker.registerFunction(CLIENT_RPC(printMessage));
     invoker.registerFunction(SERVER_RPC(sendMessage));
+    invoker.registerFunction(SERVER_RPC(gotMessage));
     return invoker;
 }

@@ -6,6 +6,8 @@
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
 
 #include "invoke.h"
 #include "log.h"
@@ -30,7 +32,7 @@ class Connection: public std::enable_shared_from_this<Connection>
         typedef std::weak_ptr<Connection> WeakPointer;
 
         // Stores RPC methods
-        typedef invoke::Invoker<Connection::Pointer> RPCInvoker;
+        typedef invoke::Invoker<boost::archive::binary_iarchive, boost::archive::binary_oarchive, Pointer> RPCInvoker;
         
         // Maps connections to UUID
         typedef std::unordered_map<boost::uuids::uuid, Connection::WeakPointer, boost::hash<boost::uuids::uuid>> ConnectionMap;
@@ -68,8 +70,12 @@ class Connection: public std::enable_shared_from_this<Connection>
             switch (_type) {
                 case Incoming:
                 case Outgoing:
-                    LOG_DEBUG("Remote RPC executed: ", name);
-                    remoteExecute(std::forward<std::string>(name), _invoker.serialize(std::forward<std::string>(name), function, std::forward<Args>(args)...));
+                    {
+                        LOG_DEBUG("Remote RPC executed: ", name);
+                        std::stringstream serialized;
+                        _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
+                        remoteExecute(std::forward<std::string>(name), serialized.str());
+                    }
                     break;
                 case Fake:
                     LOG_DEBUG("Fake RPC executed: ", name);
