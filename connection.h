@@ -71,14 +71,14 @@ class Connection: public std::enable_shared_from_this<Connection>
                 case Incoming:
                 case Outgoing:
                     {
-                        LOG_DEBUG("Remote RPC executed: ", name);
+                        //LOG_DEBUG("Remote RPC executed: ", name);
                         std::stringstream serialized;
                         _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
                         remoteExecute(std::forward<std::string>(name), serialized.str());
                     }
                     break;
                 case Fake:
-                    LOG_DEBUG("Fake RPC executed: ", name);
+                    //LOG_DEBUG("Fake RPC executed: ", name);
                     function(std::forward<Args>(args)..., shared_from_this());
                     break;
                 default:

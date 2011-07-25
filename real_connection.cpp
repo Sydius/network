@@ -134,7 +134,7 @@ void RealConnection::handleReadCommand(const boost::system::error_code & error, 
     std::string name;
     std::getline(inputStream, name, PACKET_END);
 
-    LOG_DEBUG("Local RPC executed: ", name);
+    //LOG_DEBUG("Local RPC executed: ", name);
 
     std::stringstream result;
     invoker().invoke(name, inputStream, result, shared_from_this());
