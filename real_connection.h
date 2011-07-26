@@ -1,5 +1,6 @@
 #pragma once
 
+#include <deque>
 #include <boost/asio.hpp>
 
 #include "io_service.h"
@@ -51,7 +52,8 @@ class RealConnection: public Connection
     private:
         typedef uint16_t CommandSize;
 
-        void remoteExecute(const std::string & name, const std::string & params);
+        void remoteExecute(const std::string & name, const std::string & params, RequestID=0);
+        void remoteExecute(const std::string & name, const std::string & params, RemoteExecuteCallback callback);
 
         std::shared_ptr<RealConnection> getDerivedPointer()
         {
@@ -73,6 +75,11 @@ class RealConnection: public Connection
         bool _connected;
         boost::system::error_code _lastErrorCode;
         ConnectionMap * _peers; // Peer connections
+
+        typedef std::pair<RequestID, RemoteExecuteCallback> RequestCallbackPair;
+        typedef std::deque<RequestCallbackPair> RequestCallbacks;
+        RequestCallbacks _requestCallbacks;
+        RequestID _nextRequestID;
 
         static const char PACKET_END = '\0';
 };

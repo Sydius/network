@@ -65,28 +65,10 @@ class Connection: public std::enable_shared_from_this<Connection>
          * @param args...   Arguments to pass to the RPC method
          */
         template<typename Function, typename... Args>
-        inline void execute(std::string && name, Function function, Args && ... args)
-        {
-            if (_type != Fake) {
-                std::stringstream serialized;
-                _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
-                remoteExecute(std::forward<std::string>(name), serialized.str());
-            } else {
-                function(std::forward<Args>(args)..., shared_from_this());
-            }
-        }
+        inline void execute(std::string && name, Function function, Args && ... args);
 
         template<typename Function, typename Callback, typename... Args>
-        inline void executeCallback(std::string && name, Function function, Callback callback, Args && ... args)
-        {
-            if (_type != Fake) {
-                std::stringstream serialized;
-                _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
-                remoteExecute(std::forward<std::string>(name), serialized.str());
-            } else {
-                callback(function(std::forward<Args>(args)..., shared_from_this()));
-            }
-        }
+        inline void executeCallback(std::string && name, Function function, Callback callback, Args && ... args);
 
         /**
          * Disconnect and cleanly shut down the link
@@ -128,12 +110,44 @@ class Connection: public std::enable_shared_from_this<Connection>
         RPCInvoker & invoker() { return _invoker; }
 
         // This needs to exist here for the template method execute to be able to pass on calls
-        virtual void remoteExecute(const std::string & name, const std::string & params) {}
+        typedef uint16_t RequestID;
+        static const RequestID REQUEST_ID_RECEIVED_BIT = 0x8000;
+        virtual void remoteExecute(const std::string & name, const std::string & params, RequestID=0) {}
+        typedef std::function<void(std::istream &)> RemoteExecuteCallback;
+        virtual void remoteExecute(const std::string & name, const std::string & params, RemoteExecuteCallback callback) {}
 
     private:
         RPCInvoker _invoker; // RPC methods
         boost::uuids::uuid _uuid;
         Type _type;
 };
+
+template<typename Function, typename... Args>
+void Connection::execute(std::string && name, Function function, Args && ... args)
+{
+    if (_type != Fake) {
+        std::stringstream serialized;
+        _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
+        remoteExecute(std::forward<std::string>(name), serialized.str());
+    } else {
+        function(std::forward<Args>(args)..., shared_from_this());
+    }
+}
+
+template<typename Function, typename Callback, typename... Args>
+void Connection::executeCallback(std::string && name, Function function, Callback callback, Args && ... args)
+{
+    if (_type != Fake) {
+        std::stringstream serialized;
+        _invoker.serialize(std::forward<std::string>(name), function, serialized, std::forward<Args>(args)...);
+        remoteExecute(std::forward<std::string>(name), serialized.str(),
+            [this, name, function, callback](std::istream & resultStream) {
+                callback(_invoker.deserialize(name, function, resultStream));
+            }
+        );
+    } else {
+        callback(function(std::forward<Args>(args)..., shared_from_this()));
+    }
+}
 
 }

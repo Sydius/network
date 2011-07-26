@@ -52,6 +52,8 @@ RealConnection::RealConnection(Type type,
     , _connected{false}
     , _lastErrorCode{}
     , _peers{peers}
+    , _requestCallbacks{}
+    , _nextRequestID{1}
 {
 }
 
@@ -74,26 +76,40 @@ void RealConnection::read(size_t size)
 * Private methods
 ******************/
 
-void RealConnection::remoteExecute(const std::string & name, const std::string & params)
+void RealConnection::remoteExecute(const std::string & name, const std::string & params, RequestID requestID)
 {
     std::ostream outgoingStream{&_outgoing};
-    CommandSize size{name.length() + params.length() + sizeof(PACKET_END)};
+    CommandSize size{name.length() + params.length() + sizeof(PACKET_END) + sizeof(RequestID)};
     outgoingStream.write(reinterpret_cast<char *>(&size), sizeof(size));
+    outgoingStream.write(reinterpret_cast<char *>(&requestID), sizeof(requestID));
     outgoingStream << name << PACKET_END;
     outgoingStream << params;
 
-    if (!_writing) {
-        _writing = true;
-        write();
+    write();
+}
+
+void RealConnection::remoteExecute(const std::string & name, const std::string & params, RemoteExecuteCallback callback)
+{
+    RequestID requestID = _nextRequestID++;
+    
+    _requestCallbacks.push_back(RequestCallbackPair{requestID, callback});
+    remoteExecute(name, params, requestID);
+
+    if (!_nextRequestID || _nextRequestID & REQUEST_ID_RECEIVED_BIT) {
+        _nextRequestID = 1;
     }
 }
 
 void RealConnection::write()
 {
-    boost::asio::async_write(_socket, _outgoing,
-        std::bind(&RealConnection::handleWrite, getDerivedPointer(),
-            std::placeholders::_1,
-            std::placeholders::_2));
+    if (!_writing) {
+        _writing = true;
+
+        boost::asio::async_write(_socket, _outgoing,
+            std::bind(&RealConnection::handleWrite, getDerivedPointer(),
+                std::placeholders::_1,
+                std::placeholders::_2));
+    }
 }
 
 void RealConnection::handleReadCommandHeader(const boost::system::error_code & error, size_t size)
@@ -107,8 +123,8 @@ void RealConnection::handleReadCommandHeader(const boost::system::error_code & e
     std::istream inputStream(&_incoming);
 
     CommandSize commandSize;
-    inputStream.read(reinterpret_cast<char *>(&commandSize), sizeof(CommandSize));
-    size -= sizeof(CommandSize);
+    inputStream.read(reinterpret_cast<char *>(&commandSize), sizeof(commandSize));
+    size -= sizeof(commandSize);
 
     if (size >= commandSize) {
         handleReadCommand(error, size, commandSize);
@@ -131,11 +147,36 @@ void RealConnection::handleReadCommand(const boost::system::error_code & error, 
 
     std::istream inputStream(&_incoming);
 
-    std::string name;
-    std::getline(inputStream, name, PACKET_END);
+    RequestID requestID;
+    inputStream.read(reinterpret_cast<char *>(&requestID), sizeof(requestID));
 
-    std::stringstream result;
-    invoker().invoke(name, inputStream, result, shared_from_this());
+    if (requestID & REQUEST_ID_RECEIVED_BIT) {
+        // Process result
+        requestID &= ~REQUEST_ID_RECEIVED_BIT;
+        auto iter = _requestCallbacks.begin();
+        while (iter != _requestCallbacks.end()) {
+            if (iter->first == requestID) {
+                iter->second(inputStream);
+                _requestCallbacks.erase(iter);
+                break;
+            }
+        }
+    } else {
+        std::string name;
+        std::getline(inputStream, name, PACKET_END);
+
+        std::stringstream result;
+        if (invoker().invoke(name, inputStream, result, shared_from_this()) && requestID) {
+            // Send result
+            std::ostream outgoingStream{&_outgoing};
+            CommandSize outgoingSize{sizeof(RequestID) + result.str().length()};
+            outgoingStream.write(reinterpret_cast<char *>(&outgoingSize), sizeof(outgoingSize));
+            requestID |= REQUEST_ID_RECEIVED_BIT;
+            outgoingStream.write(reinterpret_cast<char *>(&requestID), sizeof(requestID));
+            outgoingStream << result.str();
+            write();
+        }
+    }
 
     if (_connected) {
         size -= commandSize;
@@ -151,10 +192,9 @@ void RealConnection::handleWrite(const boost::system::error_code & error, size_t
         return;
     }
     
+    _writing = false;
     if (_outgoing.size()) {
         write();
-    } else {
-        _writing = false;
     }
 }
 
